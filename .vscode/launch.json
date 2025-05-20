@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:swift-testing-migrator}",
+            "name": "Debug swift-testing-migrator",
+            "program": "${workspaceFolder:swift-testing-migrator}/.build/debug/swift-testing-migrator",
+            "preLaunchTask": "swift: Build Debug swift-testing-migrator"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:swift-testing-migrator}",
+            "name": "Release swift-testing-migrator",
+            "program": "${workspaceFolder:swift-testing-migrator}/.build/release/swift-testing-migrator",
+            "preLaunchTask": "swift: Build Release swift-testing-migrator"
+        }
+    ]
+}

@@ -1,0 +1,60 @@
+import Testing
+@testable import TestingMigrator
+import SwiftSyntax
+
+struct AssertNilRewriterTests {
+    @Test func testAssertNil() throws {
+        let source = """
+        XCTAssertNil(value)
+        """
+        let expected = """
+        #expect(value == nil)
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+
+    @Test func testAssertNilWithMessage() throws {
+        let source = """
+        XCTAssertNil(value, "Message")
+        """
+        let expected = """
+        #expect(value == nil, "Message")
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+    
+    @Test func testAssertNotNil() throws {
+        let source = """
+        XCTAssertNotNil(value)
+        """
+        let expected = """
+        #expect(value != nil)
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+    
+    @Test func testAssertNotNilWithMessage() throws {
+        let source = """
+        XCTAssertNotNil(value, "Message")
+        """
+        let expected = """
+        #expect(value != nil, "Message")
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+
+    @Test func testAssertNilWithFileAndLine() throws {
+        let source = """
+        XCTAssertNil(value, file: #file, line: #line)
+        """
+        let expected = """
+        #expect(value == nil)
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+}
