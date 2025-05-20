@@ -42,14 +42,9 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
         var arguments = node.arguments.filter { $0.label == nil }
         
         guard arguments.count >= 1 else {
-            let newFunctionCall = FunctionCallExprSyntax(
-                leadingTrivia: node.leadingTrivia,
-                calledExpression: DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement)),
-                leftParen: node.leftParen,
-                arguments: arguments,
-                rightParen: node.rightParen,
-                trailingClosure: node.trailingClosure
-            )
+            let newFunctionCall = node
+                .with(\.arguments, arguments)
+                .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement))))
             return ExprSyntax(newFunctionCall)
         }
         
@@ -93,7 +88,8 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
 
         arguments[arguments.index(before: arguments.endIndex)].trailingComma = nil
         
-        let newFunctionCall = node.with(\.arguments, arguments)
+        let newFunctionCall = node
+            .with(\.arguments, arguments)
             .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement))))
 
         return ExprSyntax(newFunctionCall)
