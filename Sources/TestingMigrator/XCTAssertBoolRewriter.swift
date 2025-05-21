@@ -18,24 +18,20 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
         }
     }
     
-    let functionName: String
-    let functionNameReplacement: String
-    let operatorType: OperatorType?
+    private static let assertions: [String: (replacement: String, operatorType: OperatorType?)] = [
+        "XCTAssertTrue": ("#expect", nil),
+        "XCTAssert": ("#expect", nil),
+        "XCTAssertFalse": ("#expect", .exclamationMark),
+        "XCTAssertNil": ("#expect", .equal),
+        "XCTAssertNotNil": ("#expect", .notEqual),
+        "XCTUnwrap": ("#require", nil),
+        "XCTFail": ("Issue.record", nil)
+    ]
     
-    init(
-        functionName: String,
-        functionNameReplacement: String,
-        operatorType: OperatorType? = nil
-    ) {
-        self.functionName = functionName
-        self.functionNameReplacement = functionNameReplacement
-        self.operatorType = operatorType
-    }
-   
     override func visit(_ node: FunctionCallExprSyntax) -> ExprSyntax {
-        // Check if this is an function call to the specified function
+        // Check if this is a function call to any of our supported assertions
         guard let identifierExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-              identifierExpr.baseName.text == functionName else {
+              let assertInfo = Self.assertions[identifierExpr.baseName.text] else {
             return ExprSyntax(node)
         }
         
@@ -44,13 +40,13 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
         guard arguments.count >= 1 else {
             let newFunctionCall = node
                 .with(\.arguments, arguments)
-                .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement))))
+                .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(assertInfo.replacement))))
             return ExprSyntax(newFunctionCall)
         }
         
         let firstArg = arguments[arguments.startIndex]
         
-        if operatorType == .exclamationMark {
+        if assertInfo.operatorType == .exclamationMark {
             let newExpression: any ExprSyntaxProtocol = if firstArg.expression.is(SequenceExprSyntax.self) {
                 TupleExprSyntax(
                     elements: LabeledExprListSyntax(
@@ -67,7 +63,7 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
             )
             
             arguments[arguments.startIndex].expression = ExprSyntax(newArg)
-        } else if let operatorType {
+        } else if let operatorType = assertInfo.operatorType {
             let equalityExpr = BinaryOperatorExprSyntax(
                 leadingTrivia: .space,
                 operator: operatorType.token,
@@ -90,7 +86,7 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
         
         let newFunctionCall = node
             .with(\.arguments, arguments)
-            .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement))))
+            .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(assertInfo.replacement))))
             .with(\.leadingTrivia, node.leadingTrivia)
 
         return ExprSyntax(newFunctionCall)

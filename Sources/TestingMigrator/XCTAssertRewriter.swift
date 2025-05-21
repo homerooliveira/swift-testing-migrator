@@ -1,20 +1,21 @@
 import SwiftSyntax
 
 final class XCTAssertRewriter: SyntaxRewriter {
-    let functionName: String
-    let operatorName: String
-    let functionNameReplacement: String
-    
-    init(functionName: String, operatorName: String, functionNameReplacement: String) {
-        self.functionName = functionName
-        self.operatorName = operatorName
-        self.functionNameReplacement = functionNameReplacement
-    }
+    private let assertions: [String: (operator: String, replacement: String)] = [
+        "XCTAssertEqual": ("==", "#expect"),
+        "XCTAssertNotEqual": ("!=", "#expect"),
+        "XCTAssertIdentical": ("===", "#expect"),
+        "XCTAssertNotIdentical": ("!==", "#expect"),
+        "XCTAssertGreaterThan": (">", "#expect"),
+        "XCTAssertGreaterThanOrEqual": (">=", "#expect"),
+        "XCTAssertLessThanOrEqual": ("<=", "#expect"),
+        "XCTAssertLessThan": ("<", "#expect")
+    ]
     
     override func visit(_ node: FunctionCallExprSyntax) -> ExprSyntax {
-        // Check if this is an function call to the specified function
+        // Check if this is a function call to any of our supported assertions
         guard let identifierExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-              identifierExpr.baseName.text == functionName else {
+              let assertInfo = assertions[identifierExpr.baseName.text] else {
             return ExprSyntax(node)
         }
         
@@ -33,7 +34,7 @@ final class XCTAssertRewriter: SyntaxRewriter {
         // Create a binary operator expression: firstArg == secondArg
         let equalityExpr = BinaryOperatorExprSyntax(
             leadingTrivia: .space,
-            operator: .binaryOperator(operatorName),
+            operator: .binaryOperator(assertInfo.operator),
             trailingTrivia: .space
         )
         
@@ -45,18 +46,18 @@ final class XCTAssertRewriter: SyntaxRewriter {
                 secondArg
             ])
         )
-
+        
         arguments[secondIndex].expression = ExprSyntax(newExpr)
         arguments[arguments.index(before: arguments.endIndex)].trailingComma = nil
         
         // Remove the first argument because the first and second arguments are now combined
         arguments.remove(at: arguments.startIndex)
-
+        
         let newFunctionCall = node
             .with(\.arguments, arguments)
-            .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement))))
+            .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(assertInfo.replacement))))
             .with(\.leadingTrivia, node.leadingTrivia)
-
+        
         return ExprSyntax(newFunctionCall)
     }
 }
