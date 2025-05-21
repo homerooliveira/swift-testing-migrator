@@ -35,15 +35,29 @@ jobs:
     container: swift:6.1
     
     steps:
-        - uses: actions/checkout@v4
-        - name: Cache .build
-          uses: actions/cache@v4.2.3
-          with:
-            path: .build
-            key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', '*/Package.resolved') }}
-            restore-keys: |
-              ${{ runner.os }}-spm-
-        - name: Build
-          run: swift build -v
-        - name: Run tests
-          run: swift test -v
+    - uses: actions/checkout@v4
+    - name: Cache .build
+      uses: actions/cache@v4.2.3
+      with:
+        path: .build
+        key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', '*/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+    - name: Build
+      run: swift build -v
+    - name: Run tests
+      run: swift test -v
+  windows:
+    runs-on: windows-latest
+    
+    steps:
+     - uses: compnerd/gha-setup-swift@main
+       with:
+         branch: swift-6.1-release
+         tag: 6.1-RELEASE
+     - uses: actions/checkout@v4
+     - name: Build
+       run: swift build -v
+     - name: Run test
+       run: swift test -v
+
