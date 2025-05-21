@@ -5,7 +5,6 @@ public final class Rewriter {
     let rewriters = [
         ImportRewriter(),
         ClassRewriter(),
-        TestCaseRewriter(),
         // XCTAssertEqual(x, y)
         XCTAssertRewriter(
             functionName: "XCTAssertEqual",
