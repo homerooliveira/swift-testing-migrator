@@ -41,7 +41,7 @@ let package = Package(
 
 for target in package.targets {
     target.swiftSettings = (target.swiftSettings ?? []) + [
-//        .unsafeFlags(["-warnings-as-errors"]),
+       .unsafeFlags(["-warnings-as-errors"]),
         .enableUpcomingFeature("ExistentialAny"),
         .enableUpcomingFeature("InternalImportsByDefault"),
         .enableUpcomingFeature("MemberImportVisibility"),
