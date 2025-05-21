@@ -5,7 +5,6 @@ final class ImportRewriter: SyntaxRewriter {
     
     override func visit(_ token: TokenSyntax) -> TokenSyntax {
         guard token.tokenKind == .identifier("XCTest") else {
-            rewriter?.skipRewriting()
             return token
         }
         
