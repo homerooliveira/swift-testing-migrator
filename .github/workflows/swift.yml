@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   macos:
-    runs-on: macos-macos-15
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
