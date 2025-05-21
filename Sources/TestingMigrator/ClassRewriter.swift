@@ -22,8 +22,10 @@ final class ClassRewriter: SyntaxRewriter {
             }
             return member
         }
-        
-        return DeclSyntax(node.with(\.memberBlock.members, MemberBlockItemListSyntax(newMembers)))
+
+        node.memberBlock.members = MemberBlockItemListSyntax(newMembers)
+
+        return DeclSyntax(node)
     }
     
     func _visit(_ node: FunctionDeclSyntax) -> DeclSyntax {
