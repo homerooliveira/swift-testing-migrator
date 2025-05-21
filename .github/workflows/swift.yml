@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-macos:
+  macos:
     runs-on: macos-macos-15
 
     steps:
@@ -42,5 +42,7 @@ jobs:
             key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', '*/Package.resolved') }}
             restore-keys: |
               ${{ runner.os }}-spm-
+        - name: Build
+          run: swift build -v
         - name: Run tests
-          run: swift test
+          run: swift test -v
