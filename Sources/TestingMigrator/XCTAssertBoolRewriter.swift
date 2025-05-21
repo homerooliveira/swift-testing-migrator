@@ -91,6 +91,7 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
         let newFunctionCall = node
             .with(\.arguments, arguments)
             .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(functionNameReplacement))))
+            .with(\.leadingTrivia, node.leadingTrivia)
 
         return ExprSyntax(newFunctionCall)
     }
