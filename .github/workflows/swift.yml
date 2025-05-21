@@ -1,63 +1,68 @@
 name: Swift
-
-on:
+'on':
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
+    branches:
+      - main
 concurrency:
-  group: test_${{ github.workflow }}-${{ github.ref }}
+  group: 'test_${{ github.workflow }}-${{ github.ref }}'
   cancel-in-progress: true
-
 jobs:
   macos:
     runs-on: macos-15
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode_16.3.app
-    - name: Cache .build
-      uses: actions/cache@v4.2.3
-      with:
-        path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-        restore-keys: |
-          ${{ runner.os }}-spm-
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
-      
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+      - name: Cache .build
+        uses: actions/cache@v4.2.3
+        with:
+          path: .build
+          key: '${{ runner.os }}-spm-${{ hashFiles(''**/Package.resolved'') }}'
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      - name: Build
+        run: swift build -v
+      - name: Run tests
+        run: swift test -v
   linux:
     runs-on: ubuntu-latest
-    container: swift:6.1
-    
+    container: 'swift:6.1'
     steps:
-    - uses: actions/checkout@v4
-    - name: Cache .build
-      uses: actions/cache@v4.2.3
-      with:
-        path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', '*/Package.resolved') }}
-        restore-keys: |
-          ${{ runner.os }}-spm-
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+      - uses: actions/checkout@v4
+      - name: Cache .build
+        uses: actions/cache@v4.2.3
+        with:
+          path: .build
+          key: >-
+            ${{ runner.os }}-spm-${{ hashFiles('Package.resolved',
+            '*/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      - name: Build
+        run: swift build -v
+      - name: Run tests
+        run: swift test -v
   windows:
     runs-on: windows-latest
-    
     steps:
-     - uses: compnerd/gha-setup-swift@main
-       with:
-         branch: swift-6.1-release
-         tag: 6.1-RELEASE
-     - uses: actions/checkout@v4
-     - name: Build
-       run: swift build -v
-     - name: Run test
-       run: swift test -v
-
+      - uses: compnerd/gha-setup-swift@main
+        with:
+          branch: swift-6.1-release
+          tag: 6.1-RELEASE
+      - uses: actions/checkout@v4
+      - name: Cache .build
+        uses: actions/cache@v4.2.3
+        with:
+          path: .build
+          key: >-
+            ${{ runner.os }}-spm-${{ hashFiles('Package.resolved',
+            '*/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      - name: Build
+        run: swift build -v
+      - name: Run test
+        run: swift test -v
