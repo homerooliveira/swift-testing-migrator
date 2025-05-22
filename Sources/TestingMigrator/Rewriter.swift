@@ -9,12 +9,12 @@ public final class Rewriter {
             self.useClass = useClass
         }
     }
-
+    let preRewriter = ImportRewriter()
     let rewriters: [SyntaxRewriter]
 
     public init(_ configuration: Configuration = .init()) {
         self.rewriters = [
-            ImportRewriter(),
+            preRewriter,
             ClassRewriter(useClass: configuration.useClass),
             // Handle all XCTAssert comparison functions
             XCTAssertRewriter(),
@@ -27,6 +27,12 @@ public final class Rewriter {
     public func rewrite(source: String) -> SourceFileSyntax {
         let sourceFile = Parser.parse(source: source)
         
+        // let modifiedContent = preRewriter.visit(sourceFile)
+
+        // guard preRewriter.importFound else {
+        //     return nil
+        // }
+
         return rewriters.reduce(sourceFile) { partialResult, next in
             next.visit(partialResult)
         }

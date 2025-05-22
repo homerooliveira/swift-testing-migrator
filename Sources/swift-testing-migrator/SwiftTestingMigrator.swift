@@ -18,6 +18,7 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
         let source = try String(contentsOfFile: sourceFilePath, encoding: .utf8)
         let rewriter = Rewriter(.init(useClass: false))
         let modifiedSource = rewriter.rewrite(source: source).description
+            // print("No changes made. The source file does not contain any XCTest imports.")
 
         if dryRun || destinationFilePath == nil {
             print("Dry run: No changes made.")

@@ -37,17 +37,19 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
         var arguments = node.arguments.filter { $0.label == nil }
 
         guard arguments.count >= 1 else {
-            let newFunctionCall = node
-                .with(\.arguments, arguments)
-                .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(assertInfo.replacement))))
-            return ExprSyntax(newFunctionCall)
+            return makeFunctionCall(
+                node: node, 
+                arguments: arguments, 
+                replacement: assertInfo.replacement
+            )
         }
         
         let firstArg = arguments[arguments.startIndex]
         
         if assertInfo.operatorType == .exclamationMark,
            let token = assertInfo.operatorType?.token {
-            let newExpression: any ExprSyntaxProtocol = if firstArg.expression.is(SequenceExprSyntax.self) {
+            let newExpression: any ExprSyntaxProtocol = 
+            if firstArg.expression.is(SequenceExprSyntax.self) {
                 TupleExprSyntax(
                     elements: LabeledExprListSyntax(
                         [firstArg]
@@ -84,11 +86,19 @@ final class XCTAssertBoolRewriter: SyntaxRewriter {
 
         arguments[arguments.index(before: arguments.endIndex)].trailingComma = nil
         
-        let newFunctionCall = node
-            .with(\.arguments, arguments)
-            .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(assertInfo.replacement))))
-            .with(\.leadingTrivia, node.leadingTrivia)
+        return makeFunctionCall(
+            node: node, 
+            arguments: arguments, 
+            replacement: assertInfo.replacement
+        )
+    }
 
-        return ExprSyntax(newFunctionCall)
+    private func makeFunctionCall(node: FunctionCallExprSyntax, arguments: LabeledExprListSyntax, replacement: String) -> ExprSyntax {
+        ExprSyntax(
+            node
+            .with(\.arguments, arguments)
+            .with(\.calledExpression, ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(replacement))))
+            .with(\.leadingTrivia, node.leadingTrivia)
+        )
     }
 }

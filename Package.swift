@@ -19,29 +19,37 @@ let package = Package(
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 "TestingMigrator",
-            ]
+            ],
+            swiftSettings: .defaultSwiftSettings,
         ),
         .target(
             name: "TestingMigrator",
             dependencies: [
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
-            ]
+            ],
+            swiftSettings: .defaultSwiftSettings,
         ),
         .testTarget(
             name: "TestingMigratorTests",
             dependencies: [
                 "TestingMigrator"
-            ]
+            ],
+            resources: [
+                .copy("Resources/"),
+            ],
+            swiftSettings: .defaultSwiftSettings,
         ),
-    ]
+    ],
 )
 
-for target in package.targets {
-    target.swiftSettings = (target.swiftSettings ?? []) + [
-       .unsafeFlags(["-warnings-as-errors"]),
-        .enableUpcomingFeature("ExistentialAny"),
-        .enableUpcomingFeature("InternalImportsByDefault"),
-        .enableUpcomingFeature("MemberImportVisibility"),
-    ]
+extension [SwiftSetting] {
+    static var defaultSwiftSettings: [SwiftSetting] {
+        [
+            .unsafeFlags(["-warnings-as-errors"]),
+            .enableUpcomingFeature("ExistentialAny"),
+            .enableUpcomingFeature("InternalImportsByDefault"),
+            .enableUpcomingFeature("MemberImportVisibility"),
+        ]
+    }
 }
