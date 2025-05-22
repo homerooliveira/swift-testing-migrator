@@ -15,7 +15,7 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
     var dryRun: Bool = false
 
     mutating func run() async throws {
-        let source = try String(contentsOfFile: sourceFilePath)
+        let source = try String(contentsOfFile: sourceFilePath, encoding: .utf8)
         let rewriter = Rewriter(.init(useClass: false))
         let modifiedSource = rewriter.rewrite(source: source).description
 
