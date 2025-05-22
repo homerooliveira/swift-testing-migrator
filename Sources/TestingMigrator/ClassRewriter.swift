@@ -1,6 +1,12 @@
 import SwiftSyntax
 
 final class ClassRewriter: SyntaxRewriter {
+    let useClass: Bool
+
+    init(useClass: Bool) {
+        self.useClass = useClass
+    }
+
     override func visit(_ node: ClassDeclSyntax) -> DeclSyntax {
         var node = node
         guard var inheritedTypes = (node.inheritanceClause?.inheritedTypes.filter { $0.type.trimmedDescription != "XCTestCase" }) else {
@@ -25,7 +31,28 @@ final class ClassRewriter: SyntaxRewriter {
 
         node.memberBlock.members = MemberBlockItemListSyntax(newMembers)
 
-        return DeclSyntax(node)
+        // node.name = TokenSyntax.identifier("_" + node.name.text)
+        if useClass {
+            return DeclSyntax(node)
+        } else {
+            let removeModifiers: Set<TokenKind> = [.keyword(.open), .keyword(.final)]
+            let newModifiers = node.modifiers.filter { 
+                !removeModifiers.contains($0.name.tokenKind) 
+            }
+
+            let structDecl = StructDeclSyntax(
+                leadingTrivia: node.leadingTrivia, 
+                attributes: node.attributes,
+                modifiers: newModifiers, 
+                name: node.name.with(\.leadingTrivia, .space), 
+                genericParameterClause: node.genericParameterClause, 
+                inheritanceClause: node.inheritanceClause, 
+                genericWhereClause: node.genericWhereClause, 
+                memberBlock: node.memberBlock, 
+                trailingTrivia: node.trailingTrivia
+            )
+            return DeclSyntax(structDecl)
+        }   
     }
     
     func _visit(_ node: FunctionDeclSyntax) -> DeclSyntax {
@@ -42,30 +69,19 @@ final class ClassRewriter: SyntaxRewriter {
             rightParen: nil
         )
         
-        // Get existing attributes or create empty list
-        let existingAttributes = node.attributes
+        var attributes = node.attributes
         
-        if existingAttributes.contains(where: {
+        if attributes.contains(where: {
             $0.as(AttributeSyntax.self)?.attributeName.trimmed.description == "Test"
         }) {
             return DeclSyntax(node)
         }
         
-        // Create a new attribute list with all existing attributes plus the new one
-        let newAttributeElements = existingAttributes + [AttributeListSyntax.Element(testAttribute)]
+        attributes.append(AttributeListSyntax.Element(testAttribute))
         
-        // Preserve the leading trivia from the original function
-        let originalLeadingTrivia = node.leadingTrivia
-        
-        // Create a new function with the updated attributes
-        var newFunction = node.with(\.attributes, newAttributeElements)
-        
-        // Make sure the function keyword has a space after the @Test
-        newFunction = newFunction.with(\.funcKeyword,
-                                        newFunction.funcKeyword.with(\.leadingTrivia, .space))
-        
-        // Restore the original leading trivia to the function
-        newFunction = newFunction.with(\.leadingTrivia, originalLeadingTrivia)
+        let newFunction = node.with(\.attributes, attributes)
+            .with(\.funcKeyword.leadingTrivia, .space)
+            .with(\.leadingTrivia, node.leadingTrivia)
         
         return DeclSyntax(newFunction)
     }

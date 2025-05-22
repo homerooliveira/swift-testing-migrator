@@ -3,6 +3,40 @@ import Testing
 import SwiftSyntax
 
 struct ClassRewriterTests {
+    @Test func testStructWithOpenClass() throws {
+        let source = """
+        open class MyTests: XCTestCase {
+            func testMyTest() {
+            }
+        }
+        """
+        let expected = """
+        struct MyTests {
+            @Test func testMyTest() {
+            }
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+
+    @Test func testStructWithFinalClass() throws {
+        let source = """
+        final class MyTests: XCTestCase {
+            func testMyTest() {
+            }
+        }
+        """
+        let expected = """
+        struct MyTests {
+            @Test func testMyTest() {
+            }
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        #expect(modifiedContent.description == expected)
+    }
+
     @Test func testClassInheritanceRemoval() throws {
         let source = """
         final class MyTests: XCTestCase {
