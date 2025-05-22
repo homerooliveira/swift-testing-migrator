@@ -20,6 +20,7 @@ public final class Rewriter {
             XCTAssertRewriter(),
             // Handle all XCTAssert boolean and nil assertions
             XCTAssertBoolRewriter(),
+            XCTAssertThrowRewriter(),
         ]
     }
     
@@ -29,9 +30,5 @@ public final class Rewriter {
         return rewriters.reduce(sourceFile) { partialResult, next in
             next.visit(partialResult)
         }
-    }
-    
-    func skipRewriting() {
-        print("Skipping rewriting")
     }
 }

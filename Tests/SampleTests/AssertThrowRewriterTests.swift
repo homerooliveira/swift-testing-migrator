@@ -2,14 +2,13 @@ import Testing
 @testable import TestingMigrator
 import SwiftSyntax
 
-@Suite(.disabled("TODO: Add implementation for this test"))
 struct AssertThrowRewriterTests {
     @Test func testAssertThrowsError() throws {
         let source = """
         XCTAssertThrowsError(try something())
         """
         let expected = """
-        #expect(throws: try something())
+        #expect(throws: (any Error).self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent.description == expected)
@@ -20,7 +19,7 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something(), "Message")
         """
         let expected = """
-        #expect(throws: try something(), "Message")
+        #expect(throws: (any Error).self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent.description == expected)
@@ -31,7 +30,7 @@ struct AssertThrowRewriterTests {
         XCTAssertNoThrow(try something())
         """
         let expected = """
-        #expect(try something())
+        #expect(throws: Never.self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent.description == expected)
@@ -42,7 +41,7 @@ struct AssertThrowRewriterTests {
         XCTAssertNoThrow(try something(), "Message")
         """
         let expected = """
-        #expect(try something(), "Message")
+        #expect(throws: Never.self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent.description == expected)
@@ -53,7 +52,7 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something(), file: #file, line: #line)
         """
         let expected = """
-        #expect(throws: try something())
+        #expect(throws: (any Error).self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent.description == expected)
@@ -64,7 +63,7 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something(), "Message", file: #file, line: #line)
         """
         let expected = """
-        #expect(throws: try something(), "Message")
+        #expect(throws: (any Error).self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent.description == expected)
