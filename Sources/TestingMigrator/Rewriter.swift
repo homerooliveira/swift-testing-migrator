@@ -19,8 +19,7 @@ public final class Rewriter {
             // Handle all XCTAssert comparison functions
             XCTAssertRewriter(),
             // Handle all XCTAssert boolean and nil assertions
-            XCTAssertBoolRewriter(),
-            XCTAssertThrowRewriter(),
+            XCTAssertUnifiedRewriter(),
         ]
     }
     

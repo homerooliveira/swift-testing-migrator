@@ -1,4 +1,4 @@
- import Foundation
+import Foundation
 import Testing
 
 @Suite
@@ -28,15 +28,15 @@ class _ArrayExtensionsTests {
         #expect(!(numbers[0] == 2))
         let flag = false
         #expect(!flag)
-
+        
         #expect(
             nil == nil,
             "Must be nil"
         )
-
+        
         let number: Int? = 1
         #expect(number != nil)
-
+        
         let x = try #require(.some(1))
         #expect(x == 1)
     }
