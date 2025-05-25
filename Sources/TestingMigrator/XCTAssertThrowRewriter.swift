@@ -83,24 +83,24 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
 
         var blockItems: [CodeBlockItemSyntax] = []
 
-        let variable = VariableDeclSyntax(
-            leadingTrivia: node.leadingTrivia,
-            bindingSpecifier: .keyword(.let),
-            bindings: PatternBindingListSyntax([
-                PatternBindingListSyntax.Element(
-                    pattern: IdentifierPatternSyntax(identifier: .identifier("error", leadingTrivia: .space, trailingTrivia: .space)),
-                    initializer: InitializerClauseSyntax(equal: .equalToken(trailingTrivia: .space), value: ExprSyntax(newFunctionCall))
-                )
-            ])
-        )
-
-        blockItems.append(
-            CodeBlockItemSyntax(
-                item: .decl(DeclSyntax(variable))
-            )
-        )
-
         if let trailingClosure = node.trailingClosure {
+            let variable = VariableDeclSyntax(
+                leadingTrivia: node.leadingTrivia,
+                bindingSpecifier: .keyword(.let),
+                bindings: PatternBindingListSyntax([
+                    PatternBindingListSyntax.Element(
+                        pattern: IdentifierPatternSyntax(identifier: .identifier("error", leadingTrivia: .space, trailingTrivia: .space)),
+                        initializer: InitializerClauseSyntax(equal: .equalToken(trailingTrivia: .space), value: ExprSyntax(newFunctionCall))
+                    )
+                ])
+            )
+
+            blockItems.append(
+                CodeBlockItemSyntax(
+                    item: .decl(DeclSyntax(variable))
+                )
+            )
+
             let parameter = trailingClosure.signature?.parameterClause.flatMap(unwrapClosureParameter(_:)) ?? "$0"
 
             blockItems.append(contentsOf: trailingClosure.statements.map { (statement: CodeBlockItemListSyntax.Element) in
@@ -111,6 +111,12 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
                     parameter: parameter
                 )
             })
+        } else {
+            blockItems.append(
+                CodeBlockItemSyntax(
+                    item: .expr(ExprSyntax(newFunctionCall))
+                )
+            )
         }
 
         return blockItems
