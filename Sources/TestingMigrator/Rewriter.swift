@@ -15,6 +15,7 @@ public struct Rewriter {
         self.rewriters = [
             ImportRewriter(),
             ClassRewriter(useClass: configuration.useClass),
+            XCTAssertThrowRewriter(),
             XCTAssertUnifiedRewriter(),
         ]
     }

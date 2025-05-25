@@ -8,10 +8,10 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something())
         """
         let expected = """
-        #expect(throws: (any Error).self) { try something() }
+        let error = #expect(throws: (any Error).self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertThrowsErrorWithMessage() throws {
@@ -19,10 +19,10 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something(), "Message")
         """
         let expected = """
-        #expect(throws: (any Error).self, "Message") { try something() }
+        let error = #expect(throws: (any Error).self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertNoThrow() throws {
@@ -30,10 +30,10 @@ struct AssertThrowRewriterTests {
         XCTAssertNoThrow(try something())
         """
         let expected = """
-        #expect(throws: Never.self) { try something() }
+        let error = #expect(throws: Never.self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertNoThrowWithMessage() throws {
@@ -41,10 +41,10 @@ struct AssertThrowRewriterTests {
         XCTAssertNoThrow(try something(), "Message")
         """
         let expected = """
-        #expect(throws: Never.self, "Message") { try something() }
+        let error = #expect(throws: Never.self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertThrowsErrorWithFileAndLine() throws {
@@ -52,10 +52,10 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something(), file: #file, line: #line)
         """
         let expected = """
-        #expect(throws: (any Error).self) { try something() }
+        let error = #expect(throws: (any Error).self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertThrowsErrorWithMessageFileAndLine() throws {
@@ -63,9 +63,40 @@ struct AssertThrowRewriterTests {
         XCTAssertThrowsError(try something(), "Message", file: #file, line: #line)
         """
         let expected = """
-        #expect(throws: (any Error).self, "Message") { try something() }
+        let error = #expect(throws: (any Error).self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testAssertThrowsErrorWithTrailingClosure() throws {
+        let source = """
+        XCTAssertThrowsError(try something()) { error in
+            XCTAssertEqual(error.localizedDescription, "Message")
+            XCTAssertTrue(error is CocoaError)
+        }
+        """
+        let expected = """
+        let error = #expect(throws: (any Error).self) { try something() }
+        #expect(error?.localizedDescription == "Message")
+        #expect(error is CocoaError)
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test 
+    func testAssertThrowsErrorWithMessageAndTrailingClosure() throws {
+        let source = """
+        XCTAssertThrowsError(try something(), "Message") { error in
+            #expect(error is MyError)
+        }
+        """
+        let expected = """
+        let error = #expect(throws: (any Error).self, "Message") { try something() }
+        #expect(error is MyError)
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
     }
 }
