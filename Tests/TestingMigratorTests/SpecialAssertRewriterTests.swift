@@ -11,7 +11,7 @@ struct SpecialAssertRewriterTests {
         Issue.record()
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testFailWithMessage() throws {
@@ -22,7 +22,7 @@ struct SpecialAssertRewriterTests {
         Issue.record("Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testFailWithFileAndLine() throws {
@@ -33,7 +33,7 @@ struct SpecialAssertRewriterTests {
         Issue.record()
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testFailWithMessageFileAndLine() throws {
@@ -44,7 +44,7 @@ struct SpecialAssertRewriterTests {
         Issue.record("Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testUnwrap() throws {
@@ -55,7 +55,7 @@ struct SpecialAssertRewriterTests {
         let value = try #require(optional)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testUnwrapWithMessage() throws {
@@ -66,7 +66,7 @@ struct SpecialAssertRewriterTests {
         let value = try #require(optional, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testUnwrapWithFileAndLine() throws {
@@ -77,7 +77,7 @@ struct SpecialAssertRewriterTests {
         let value = try #require(optional)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testUnwrapWithMessageFileAndLine() throws {
@@ -88,6 +88,6 @@ struct SpecialAssertRewriterTests {
         let value = try #require(optional, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }

@@ -11,7 +11,7 @@ struct AssertRewriterTests {
         #expect(value == true)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertWithMessage() throws {
@@ -22,7 +22,7 @@ struct AssertRewriterTests {
         #expect(value == true, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertWithFileAndLine() throws {
@@ -33,7 +33,7 @@ struct AssertRewriterTests {
         #expect(value == true)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertWithMessageFileAndLine() throws {
@@ -44,6 +44,6 @@ struct AssertRewriterTests {
         #expect(value == true, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }

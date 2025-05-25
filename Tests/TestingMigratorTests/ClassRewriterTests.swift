@@ -17,7 +17,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testStructWithFinalClass() throws {
@@ -34,7 +34,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testClassInheritanceRemoval() throws {
@@ -47,7 +47,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testClassWithMultipleInheritance() throws {
@@ -64,7 +64,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testClassWithoutXCTestInheritance() throws {
@@ -77,7 +77,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testClassWithExistingTestAttribute() throws {
@@ -94,7 +94,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testClassWithEmptyInheritanceClause() throws {
@@ -111,7 +111,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testMethodsNotStartingWithTest() throws {
@@ -136,7 +136,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testMultipleTestMethods() throws {
@@ -161,7 +161,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testPreservesLeadingTrivia() throws {
@@ -182,6 +182,6 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }

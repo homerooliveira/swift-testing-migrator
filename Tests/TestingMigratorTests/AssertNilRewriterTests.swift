@@ -11,7 +11,7 @@ struct AssertNilRewriterTests {
         #expect(value == nil)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertNilWithMessage() throws {
@@ -22,7 +22,7 @@ struct AssertNilRewriterTests {
         #expect(value == nil, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertNotNil() throws {
@@ -33,7 +33,7 @@ struct AssertNilRewriterTests {
         #expect(value != nil)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertNotNilWithMessage() throws {
@@ -44,7 +44,7 @@ struct AssertNilRewriterTests {
         #expect(value != nil, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertNilWithFileAndLine() throws {
@@ -55,6 +55,6 @@ struct AssertNilRewriterTests {
         #expect(value == nil)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }

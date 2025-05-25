@@ -1,7 +1,7 @@
 import SwiftParser
-public import SwiftSyntax
+import SwiftSyntax
 
-public final class Rewriter {
+public struct Rewriter {
     public struct Configuration {
         let useClass: Bool
 
@@ -9,31 +9,23 @@ public final class Rewriter {
             self.useClass = useClass
         }
     }
-    let preRewriter = ImportRewriter()
     let rewriters: [SyntaxRewriter]
 
     public init(_ configuration: Configuration = .init()) {
         self.rewriters = [
-            preRewriter,
+            ImportRewriter(),
             ClassRewriter(useClass: configuration.useClass),
-            // Handle all XCTAssert comparison functions
-            XCTAssertRewriter(),
-            // Handle all XCTAssert boolean and nil assertions
             XCTAssertUnifiedRewriter(),
         ]
     }
     
-    public func rewrite(source: String) -> SourceFileSyntax {
+    public func rewrite(source: String) -> String {
         let sourceFile = Parser.parse(source: source)
-        
-        // let modifiedContent = preRewriter.visit(sourceFile)
 
-        // guard preRewriter.importFound else {
-        //     return nil
-        // }
-
-        return rewriters.reduce(sourceFile) { partialResult, next in
+        let result = rewriters.reduce(sourceFile) { partialResult, next in
             next.visit(partialResult)
         }
+
+        return result.description
     }
 }

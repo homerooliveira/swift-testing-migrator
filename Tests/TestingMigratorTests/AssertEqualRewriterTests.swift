@@ -11,7 +11,7 @@ struct AssertEqualRewriterTests {
         #expect(a == b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertEqualWithMessage() throws {
@@ -22,7 +22,7 @@ struct AssertEqualRewriterTests {
         #expect(a == b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertNotEqual() throws {
@@ -33,7 +33,7 @@ struct AssertEqualRewriterTests {
         #expect(a != b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertNotEqualWithMessage() throws {
@@ -44,7 +44,7 @@ struct AssertEqualRewriterTests {
         #expect(a != b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertEqualWithFileAndLine() throws {
@@ -55,7 +55,7 @@ struct AssertEqualRewriterTests {
         #expect(a == b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertEqualWithMessageFileAndLine() throws {
@@ -66,6 +66,6 @@ struct AssertEqualRewriterTests {
         #expect(a == b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }

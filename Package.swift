@@ -16,8 +16,6 @@ let package = Package(
             name: "swift-testing-migrator",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "SwiftParser", package: "swift-syntax"),
-                .product(name: "SwiftSyntax", package: "swift-syntax"),
                 "TestingMigrator",
             ],
             swiftSettings: .defaultSwiftSettings,
@@ -33,7 +31,7 @@ let package = Package(
         .testTarget(
             name: "TestingMigratorTests",
             dependencies: [
-                "TestingMigrator"
+                "TestingMigrator",
             ],
             resources: [
                 .copy("Resources/"),

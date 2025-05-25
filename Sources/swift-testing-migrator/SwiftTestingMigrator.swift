@@ -1,7 +1,5 @@
 import ArgumentParser
 import Foundation
-import SwiftParser
-import SwiftSyntax
 import TestingMigrator
 
 @main

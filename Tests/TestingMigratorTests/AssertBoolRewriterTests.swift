@@ -11,7 +11,7 @@ struct AssertBoolRewriterTests {
         #expect(value)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertTrueWithMessage() throws {
@@ -22,7 +22,7 @@ struct AssertBoolRewriterTests {
         #expect(value, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertFalse() throws {
@@ -33,7 +33,7 @@ struct AssertBoolRewriterTests {
         #expect(!value)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertFalseWithExpression() throws {
@@ -44,7 +44,7 @@ struct AssertBoolRewriterTests {
         #expect(!(value == true))
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertFalseWithMessage() throws {
@@ -55,7 +55,7 @@ struct AssertBoolRewriterTests {
         #expect(!value, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertTrueWithFileAndLine() throws {
@@ -66,7 +66,7 @@ struct AssertBoolRewriterTests {
         #expect(value)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertTrueWithMessageFileAndLine() throws {
@@ -77,7 +77,7 @@ struct AssertBoolRewriterTests {
         #expect(value, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertFalseWithFileAndLine() throws {
@@ -88,7 +88,7 @@ struct AssertBoolRewriterTests {
         #expect(!value)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertFalseWithMessageFileAndLine() throws {
@@ -99,6 +99,6 @@ struct AssertBoolRewriterTests {
         #expect(!value, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }

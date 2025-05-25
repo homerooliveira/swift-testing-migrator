@@ -11,7 +11,7 @@ struct AssertComparisonRewriterTests {
         #expect(a > b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertGreaterThanOrEqual() throws {
@@ -22,7 +22,7 @@ struct AssertComparisonRewriterTests {
         #expect(a >= b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
     
     @Test func testAssertLessThan() throws {
@@ -33,7 +33,7 @@ struct AssertComparisonRewriterTests {
         #expect(a < b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertLessThanOrEqual() throws {
@@ -44,7 +44,7 @@ struct AssertComparisonRewriterTests {
         #expect(a <= b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertGreaterThanWithFileAndLine() throws {
@@ -55,7 +55,7 @@ struct AssertComparisonRewriterTests {
         #expect(a > b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertGreaterThanWithMessageFileAndLine() throws {
@@ -66,7 +66,7 @@ struct AssertComparisonRewriterTests {
         #expect(a > b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertLessThanWithFileAndLine() throws {
@@ -77,7 +77,7 @@ struct AssertComparisonRewriterTests {
         #expect(a < b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertLessThanWithMessageFileAndLine() throws {
@@ -88,7 +88,7 @@ struct AssertComparisonRewriterTests {
         #expect(a < b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertGreaterThanOrEqualWithFileAndLine() throws {
@@ -99,7 +99,7 @@ struct AssertComparisonRewriterTests {
         #expect(a >= b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertGreaterThanOrEqualWithMessageFileAndLine() throws {
@@ -110,7 +110,7 @@ struct AssertComparisonRewriterTests {
         #expect(a >= b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertLessThanOrEqualWithFileAndLine() throws {
@@ -121,7 +121,7 @@ struct AssertComparisonRewriterTests {
         #expect(a <= b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 
     @Test func testAssertLessThanOrEqualWithMessageFileAndLine() throws {
@@ -132,6 +132,6 @@ struct AssertComparisonRewriterTests {
         #expect(a <= b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent.description == expected)
+        #expect(modifiedContent == expected)
     }
 }
