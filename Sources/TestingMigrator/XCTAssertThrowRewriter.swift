@@ -114,7 +114,7 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
         } else {
             blockItems.append(
                 CodeBlockItemSyntax(
-                    item: .expr(ExprSyntax(newFunctionCall))
+                    item: .expr(ExprSyntax(newFunctionCall.with(\.leadingTrivia, node.leadingTrivia)))
                 )
             )
         }

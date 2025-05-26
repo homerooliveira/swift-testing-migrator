@@ -13,17 +13,12 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
     var dryRun: Bool = false
 
     mutating func run() async throws {
-        let source = try String(contentsOfFile: sourceFilePath, encoding: .utf8)
+        let fileProcessor = FileProcessor()
         let rewriter = Rewriter(.init(useClass: false))
-        let modifiedSource = rewriter.rewrite(source: source).description
 
-        if dryRun || destinationFilePath == nil {
-            print("Dry run: No changes made.")
-            print("Modified source:\n\(modifiedSource)")
-        } else if let destinationFilePath  {
-            let destinationFileURL = URL(fileURLWithPath: destinationFilePath)
-            try modifiedSource.write(to: destinationFileURL, atomically: true, encoding: .utf8)
-            print("Changes made to \(destinationFilePath).")
+        try fileProcessor.processPath(sourceFilePath, recursive: false) { content, fileURL in
+            let modifiedSource = rewriter.rewrite(source: content).description
+            try modifiedSource.write(to: fileURL, atomically: true, encoding: .utf8)
         }
     }
 }
