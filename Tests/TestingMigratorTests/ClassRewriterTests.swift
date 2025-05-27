@@ -117,7 +117,9 @@ struct ClassRewriterTests {
     @Test func testMethodsNotStartingWithTest() throws {
         let source = """
         class MyTests: XCTestCase {
-            func setup() {
+            override func setUp() async {
+            }
+            override func setUpWithError() throws {
             }
             func testExample() {
             }
@@ -127,7 +129,9 @@ struct ClassRewriterTests {
         """
         let expected = """
         class MyTests {
-            func setup() {
+            init() async {
+            }
+            init() throws {
             }
             @Test func testExample() {
             }
