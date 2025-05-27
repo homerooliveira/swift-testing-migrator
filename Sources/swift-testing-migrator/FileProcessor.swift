@@ -68,7 +68,6 @@ struct FileProcessor {
             let content = String(decoding: data, as: UTF8.self)
             try processContent(content, fileURL)
         } catch {
-            print("Failed to read file at \(fileURL.path): \(error)")
             throw FileProcessorError.cannotReadFile(fileURL.path, error)
         }
     }
@@ -84,11 +83,11 @@ enum FileProcessorError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .pathNotFound(let path):
-            return "Path not found: \(path)"
+            "Path not found: \(path)"
         case .cannotEnumerateDirectory(let path):
-            return "Cannot enumerate directory: \(path)"
+            "Cannot enumerate directory: \(path)"
         case .cannotReadFile(let path, let error):
-            return "Cannot read file at \(path): \(error.localizedDescription)"
+            "Cannot read file at \(path): \(error.localizedDescription)"
         }
     }
 }
