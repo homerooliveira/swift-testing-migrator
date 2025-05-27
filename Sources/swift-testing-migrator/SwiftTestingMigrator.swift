@@ -9,8 +9,8 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
     var sourceFilePath: String
     @Argument(help: "The path to the destination file.")
     var destinationFilePath: String?
-    @Flag(help: "Perform a dry run without making changes.")
-    var dryRun: Bool = false
+    @Flag(help: "")
+    var inPlace: Bool = false
 
     mutating func run() async throws {
         let fileProcessor = FileProcessor()
@@ -18,7 +18,11 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
 
         try fileProcessor.processPath(sourceFilePath, recursive: false) { content, fileURL in
             let modifiedSource = rewriter.rewrite(source: content).description
-            try modifiedSource.write(to: fileURL, atomically: true, encoding: .utf8)
+            if inPlace {
+                try modifiedSource.write(to: fileURL, atomically: true, encoding: .utf8)
+            } else {
+                print(modifiedSource)
+            }
         }
     }
 }
