@@ -188,4 +188,117 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
+
+    @Test func testClassWithMultipleModifiers() throws {
+        let source = """
+        public final class MyTests: XCTestCase {
+            func testMyTest() {}
+        }
+        """
+        let expected = """
+        public struct MyTests {
+            @Test func testMyTest() {}
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testClassWithComputedProperty() throws {
+        let source = """
+        class MyTests: XCTestCase {
+            var value: Int { 42 }
+            func testExample() { _ = value }
+        }
+        """
+        let expected = """
+        class MyTests {
+            var value: Int { 42 }
+            @Test func testExample() { _ = value }
+        }
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testMethodWithMutatingModifier() throws {
+        let source = """
+        class MyTests: XCTestCase {
+            mutating func testMutating() {}
+        }
+        """
+        let expected = """
+        class MyTests {
+            mutating @Test func testMutating() {}
+        }
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testStructAddsMutatingIfAccessesStoredProperty() throws {
+        let source = """
+        class MyTests: XCTestCase {
+            var count = 0
+            func testIncrement() { count += 1 }
+        }
+        """
+        let expected = """
+        struct MyTests {
+            var count = 0
+            @Test mutating func testIncrement() { count += 1 }
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testStructDoesNotAddMutatingIfNoStoredPropertyAccess() throws {
+        let source = """
+        class MyTests: XCTestCase {
+            var count = 0
+            func testNoMutation() { print("hi") }
+        }
+        """
+        let expected = """
+        struct MyTests {
+            var count = 0
+            @Test func testNoMutation() { print("hi") }
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testClassWithAttributes() throws {
+        let source = """
+        @available(iOS 13, *)
+        class MyTests: XCTestCase {
+            func testExample() {}
+        }
+        """
+        let expected = """
+        @available(iOS 13, *)
+        class MyTests {
+            @Test func testExample() {}
+        }
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
+    @Test func testClassWithTrailingTrivia() throws {
+        let source = """
+        class MyTests: XCTestCase { // trailing comment
+            func testExample() {}
+        }
+        """
+        let expected = """
+        class MyTests { // trailing comment
+            @Test func testExample() {}
+        }
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
 }

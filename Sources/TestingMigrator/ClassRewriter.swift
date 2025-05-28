@@ -2,6 +2,7 @@ import SwiftSyntax
 
 final class ClassRewriter: SyntaxRewriter {
     private let useClass: Bool
+    private var storedProperties: Set<String> = []
     
     init(useClass: Bool) {
         self.useClass = useClass
@@ -13,11 +14,16 @@ final class ClassRewriter: SyntaxRewriter {
             return DeclSyntax(node)
         }
 
-        let nodeWithUpdatedMembers = updateMemberFunctions(processedNode)
+        // Collect stored properties before processing members
+        storedProperties = collectStoredProperties(from: processedNode)
         
-        return useClass 
-            ? DeclSyntax(nodeWithUpdatedMembers)
-            : DeclSyntax(convertToStruct(nodeWithUpdatedMembers))
+        let nodeWithUpdatedMembers = updateMemberFunctions(processedNode)
+
+        if useClass {
+            return DeclSyntax(nodeWithUpdatedMembers)
+        } else {
+            return DeclSyntax(convertToStruct(nodeWithUpdatedMembers))
+        }
     }
     
     override func visit(_ node: FunctionDeclSyntax) -> DeclSyntax {
@@ -43,6 +49,24 @@ final class ClassRewriter: SyntaxRewriter {
     }
     
     // MARK: - Private Methods
+    
+    private func collectStoredProperties(from node: ClassDeclSyntax) -> Set<String> {
+        var properties: Set<String> = []
+        
+        for member in node.memberBlock.members {
+            if let varDecl = member.decl.as(VariableDeclSyntax.self) {
+                // Check if it's a stored property (not computed)
+                for binding in varDecl.bindings {
+                    if let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
+                       binding.accessorBlock == nil { // No accessor block means stored property
+                        properties.insert(identifier.identifier.text)
+                    }
+                }
+            }
+        }
+        
+        return properties
+    }
     
     private func processInheritanceClause(_ node: ClassDeclSyntax) -> (ClassDeclSyntax, Bool) {
         var modifiedNode = node
@@ -170,7 +194,11 @@ final class ClassRewriter: SyntaxRewriter {
             .with(\.leadingTrivia, node.leadingTrivia)
         
         // Remove override modifier if converting to struct and it's not a test function being kept as class
-        return useClass ? modifiedNode : removeOverrideModifier(from: modifiedNode)
+        if useClass {
+            return modifiedNode
+        } else {
+            return removeOverrideModifier(from: modifiedNode)
+        }
     }
     
     private func processFunctionForStructConversion(_ node: FunctionDeclSyntax) -> DeclSyntax {
@@ -181,14 +209,68 @@ final class ClassRewriter: SyntaxRewriter {
             return processedDecl
         }
         
-        // Otherwise, it's still a FunctionDeclSyntax, so handle override modifier removal
+        // Otherwise, it's still a FunctionDeclSyntax, so handle override modifier removal and mutating
         let processedForTest = processedDecl.as(FunctionDeclSyntax.self) ?? node
-        return useClass ? DeclSyntax(processedForTest) : DeclSyntax(removeOverrideModifier(from: processedForTest))
+        
+        if useClass {
+            return DeclSyntax(processedForTest)
+        } else {
+            let withoutOverride = removeOverrideModifier(from: processedForTest)
+            return DeclSyntax(addMutatingIfNeeded(to: withoutOverride))
+        }
     }
     
     private func removeOverrideModifier(from node: FunctionDeclSyntax) -> FunctionDeclSyntax {
         let filteredModifiers = filterOverrideModifier(node.modifiers)
         return node.with(\.modifiers, filteredModifiers)
+    }
+    
+    private func addMutatingIfNeeded(to node: FunctionDeclSyntax) -> FunctionDeclSyntax {
+        // Only add mutating when converting to struct, not when keeping as class
+        guard !useClass else {
+            return node
+        }
+        
+        // Skip if already has mutating modifier
+        let hasMutating = node.modifiers.contains { modifier in
+            modifier.name.tokenKind == .keyword(.mutating)
+        }
+        
+        guard !hasMutating else {
+            return node
+        }
+        
+        // Check if function body accesses stored properties in a potentially mutating way
+        guard let body = node.body,
+              functionAccessesStoredProperties(body: body) else {
+            return node
+        }
+        
+        let leadingTrivia = if node.attributes.isEmpty {
+            node.leadingTrivia
+        } else {
+            Trivia.space
+        }
+
+        // Add mutating modifier
+        let mutatingModifier = DeclModifierSyntax(
+            leadingTrivia: leadingTrivia,
+            name: .keyword(.mutating)
+        )
+
+        // node.leadingTrivia = .space
+        
+        var updatedModifiers = node.modifiers
+        updatedModifiers.append(mutatingModifier)
+        
+        return node.with(\.modifiers, updatedModifiers)
+            .with(\.funcKeyword.leadingTrivia, .space)
+    }
+    
+    private func functionAccessesStoredProperties(body: CodeBlockSyntax) -> Bool {
+        let visitor = PropertyAccessVisitor(storedProperties: storedProperties)
+        visitor.walk(body)
+        return visitor.accessesStoredProperty
     }
     
     private func createTestAttribute() -> AttributeSyntax {
@@ -200,5 +282,86 @@ final class ClassRewriter: SyntaxRewriter {
             arguments: nil,
             rightParen: nil
         )
+    }
+}
+
+// MARK: - Property Access Visitor
+
+private class PropertyAccessVisitor: SyntaxVisitor {
+    let storedProperties: Set<String>
+    var accessesStoredProperty = false
+    
+    init(storedProperties: Set<String>) {
+        self.storedProperties = storedProperties
+        super.init(viewMode: .sourceAccurate)
+    }
+    
+    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        // Check for self.property or implicit property access
+        if let baseExpr = node.base {
+            // Check for explicit self access: self.propertyName
+            if let declRefExpr = baseExpr.as(DeclReferenceExprSyntax.self),
+               declRefExpr.baseName.text == "self",
+               storedProperties.contains(node.declName.baseName.text) {
+                accessesStoredProperty = true
+                return .skipChildren
+            }
+        }
+        
+        return .visitChildren
+    }
+    
+    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+        // Check for implicit property access (just propertyName without self.)
+        if storedProperties.contains(node.baseName.text) {
+            // Additional check: ensure this isn't a local variable or parameter
+            // This is a simplified check - in a real implementation, you'd want
+            // to maintain a scope stack to properly distinguish between
+            // stored properties and local variables
+            accessesStoredProperty = true
+        }
+        
+        return .visitChildren
+    }
+    
+    override func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
+        // Check for assignment operations (= operator)
+        if let operatorToken = node.operator.as(BinaryOperatorExprSyntax.self),
+           operatorToken.operator.text == "=" {
+            
+            // Check if the left side is a stored property
+            if let memberAccess = node.leftOperand.as(MemberAccessExprSyntax.self) {
+                if let baseExpr = memberAccess.base?.as(DeclReferenceExprSyntax.self),
+                   baseExpr.baseName.text == "self",
+                   storedProperties.contains(memberAccess.declName.baseName.text) {
+                    accessesStoredProperty = true
+                    return .skipChildren
+                }
+            } else if let declRef = node.leftOperand.as(DeclReferenceExprSyntax.self),
+                      storedProperties.contains(declRef.baseName.text) {
+                accessesStoredProperty = true
+                return .skipChildren
+            }
+        }
+        
+        return .visitChildren
+    }
+    
+    override func visit(_ node: InOutExprSyntax) -> SyntaxVisitorContinueKind {
+        // Check for inout usage of stored properties
+        if let memberAccess = node.expression.as(MemberAccessExprSyntax.self) {
+            if let baseExpr = memberAccess.base?.as(DeclReferenceExprSyntax.self),
+               baseExpr.baseName.text == "self",
+               storedProperties.contains(memberAccess.declName.baseName.text) {
+                accessesStoredProperty = true
+                return .skipChildren
+            }
+        } else if let declRef = node.expression.as(DeclReferenceExprSyntax.self),
+                  storedProperties.contains(declRef.baseName.text) {
+            accessesStoredProperty = true
+            return .skipChildren
+        }
+        
+        return .visitChildren
     }
 }
