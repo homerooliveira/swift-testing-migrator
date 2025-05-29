@@ -39,24 +39,17 @@ struct FileProcessor {
         guard let filesEnumerator = FileManager.default.enumerator(
             at: directoryURL,
             includingPropertiesForKeys: resourceKeys,
-            options: recursive ? [] : [.skipsSubdirectoryDescendants]
+            options: recursive ? [.skipsHiddenFiles] : [.skipsSubdirectoryDescendants, .skipsHiddenFiles]
         ) else {
             throw FileProcessorError.cannotEnumerateDirectory(directoryURL.path)
         }
-        
-        // Collect all file URLs first
-        var fileURLs: [URL] = []
         
         for case let fileURL as URL in filesEnumerator {
             let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
             
             if resourceValues.isRegularFile == true && fileURL.pathExtension == "swift" {
-                fileURLs.append(fileURL)
+                try processFile(fileURL, processContent: processContent)
             }
-        }
-        
-        for fileURL in fileURLs {
-            try processFile(fileURL, processContent: processContent)
         }
     }
     

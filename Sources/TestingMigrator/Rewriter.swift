@@ -11,7 +11,7 @@ public struct Rewriter {
     }
     let rewriters: [SyntaxRewriter]
 
-    public init(_ configuration: Configuration = .init()) {
+    public init(_ configuration: Configuration = Configuration()) {
         self.rewriters = [
             ImportRewriter(),
             XCTAssertThrowRewriter(),

@@ -30,6 +30,16 @@ final class SelfPrefixRewriter: SyntaxRewriter {
             return ExprSyntax(node)
         }
         
+        // Check if this is a root member access that needs self prefix
+        if insideClosure, let baseExpr = node.base?.as(DeclReferenceExprSyntax.self) {
+            let baseIdentifier = baseExpr.baseName.text
+            if shouldAddSelfPrefix(for: baseIdentifier) {
+                // Create self.baseIdentifier.memberName
+                let selfBase = createSelfMemberAccess(for: baseIdentifier, originalNode: baseExpr)
+                return ExprSyntax(node.with(\.base, ExprSyntax(selfBase)))
+            }
+        }
+        
         // Process the base expression recursively
         return ExprSyntax(node.with(\.base, node.base.map { visit($0) }))
     }
@@ -124,13 +134,14 @@ final class SelfPrefixRewriter: SyntaxRewriter {
     private func handleFunctionCallInsideClosure(_ node: FunctionCallExprSyntax, processedArguments: [LabeledExprSyntax]) -> ExprSyntax {
         var updatedNode = node.with(\.arguments, LabeledExprListSyntax(processedArguments))
         
-        // Handle method calls
-        if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
-            if !isAlreadySelfPrefixed(memberAccess) {
-                updatedNode = handleMemberAccessMethodCall(updatedNode, memberAccess: memberAccess)
-            }
-        } else if let declRef = node.calledExpression.as(DeclReferenceExprSyntax.self) {
-            updatedNode = handleDirectMethodCall(updatedNode, declRef: declRef)
+        // First process the called expression to handle member access chains
+        let processedCalledExpression = visit(node.calledExpression)
+        updatedNode = updatedNode.with(\.calledExpression, processedCalledExpression)
+        
+        // Handle trailing closure if present
+        if let trailingClosure = node.trailingClosure,
+           let newTrailingClosure = visit(trailingClosure).as(ClosureExprSyntax.self) {
+            updatedNode = updatedNode.with(\.trailingClosure, newTrailingClosure)
         }
         
         return ExprSyntax(updatedNode)
