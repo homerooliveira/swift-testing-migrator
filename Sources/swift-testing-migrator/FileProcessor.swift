@@ -50,7 +50,7 @@ struct FileProcessor {
         for case let fileURL as URL in filesEnumerator {
             let resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
             
-            if resourceValues.isRegularFile == true {
+            if resourceValues.isRegularFile == true && fileURL.pathExtension == "swift" {
                 fileURLs.append(fileURL)
             }
         }

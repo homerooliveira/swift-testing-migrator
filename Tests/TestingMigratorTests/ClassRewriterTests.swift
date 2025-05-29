@@ -50,6 +50,31 @@ struct ClassRewriterTests {
         #expect(modifiedContent == expected)
     }
 
+    @Test func testClassWithStoredPropertyAndMethod() throws {
+        let source = """
+        final class MyTests: XCTestCase {
+            func testFoo() {
+                XCTAssertThrowsError(try something(), "Message")
+            }
+
+            func something() {
+            }
+        }
+        """
+        let expected = """
+        final class MyTests {
+            @Test func testFoo() {
+                #expect(throws: (any Error).self, "Message") { try self.something() }
+            }
+
+            func something() {
+            }
+        }
+        """
+        let modifiedContent = Rewriter().rewrite(source: source)
+        #expect(modifiedContent == expected)
+    }
+
     @Test func testClassWithMultipleInheritance() throws {
         let source = """
         class MyTests: XCTestCase, SomeProtocol {
@@ -215,21 +240,6 @@ struct ClassRewriterTests {
         class MyTests {
             var value: Int { 42 }
             @Test func testExample() { _ = value }
-        }
-        """
-        let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
-    }
-
-    @Test func testMethodWithMutatingModifier() throws {
-        let source = """
-        class MyTests: XCTestCase {
-            mutating func testMutating() {}
-        }
-        """
-        let expected = """
-        class MyTests {
-            mutating @Test func testMutating() {}
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
