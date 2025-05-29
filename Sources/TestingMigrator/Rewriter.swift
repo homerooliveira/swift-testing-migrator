@@ -19,7 +19,7 @@ public struct Rewriter {
             ClassRewriter(useClass: configuration.useClass),
         ]
     }
-    
+
     public func rewrite(source: String) -> String {
         let sourceFile = Parser.parse(source: source)
 

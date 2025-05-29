@@ -24,7 +24,7 @@ struct AssertIdenticalRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertNotIdentical() throws {
         let source = """
         XCTAssertNotIdentical(a, b)

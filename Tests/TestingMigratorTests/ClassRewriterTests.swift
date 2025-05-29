@@ -53,8 +53,10 @@ struct ClassRewriterTests {
     @Test func testClassWithStoredPropertyAndMethod() throws {
         let source = """
         final class MyTests: XCTestCase {
+            var foo = Foo()
             func testFoo() {
                 XCTAssertThrowsError(try something(), "Message")
+                XCTAssertThrowsError(try foo.bar, "Message")
             }
 
             func something() {
@@ -63,8 +65,10 @@ struct ClassRewriterTests {
         """
         let expected = """
         final class MyTests {
+            var foo = Foo()
             @Test func testFoo() {
                 #expect(throws: (any Error).self, "Message") { try self.something() }
+                #expect(throws: (any Error).self, "Message") { try self.foo.bar }
             }
 
             func something() {
@@ -91,7 +95,7 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testClassWithoutXCTestInheritance() throws {
         let source = """
         class MyClass: SomeClass {
@@ -104,7 +108,7 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testClassWithExistingTestAttribute() throws {
         let source = """
         class MyTests: XCTestCase {
@@ -121,7 +125,7 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testClassWithEmptyInheritanceClause() throws {
         let source = """
         class MyTests {
@@ -138,7 +142,7 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testMethodsNotStartingWithTest() throws {
         let source = """
         class MyTests: XCTestCase {
@@ -167,7 +171,7 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testMultipleTestMethods() throws {
         let source = """
         class MyTests: XCTestCase {
@@ -192,7 +196,7 @@ struct ClassRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testPreservesLeadingTrivia() throws {
         let source = """
         // My test class

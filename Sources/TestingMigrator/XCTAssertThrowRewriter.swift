@@ -73,7 +73,7 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
                 )
             )
         )
-        
+
         if arguments.count > 1 {
             newFunctionCall.arguments[newFunctionCall.arguments.startIndex].trailingComma = .commaToken(trailingTrivia: .space)
             var message = arguments[arguments.index(after: arguments.startIndex)]

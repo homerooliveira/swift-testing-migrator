@@ -46,7 +46,7 @@ struct SpecialAssertRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testUnwrap() throws {
         let source = """
         let value = try XCTUnwrap(optional)

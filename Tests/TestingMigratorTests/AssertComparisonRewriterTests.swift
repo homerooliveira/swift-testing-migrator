@@ -24,7 +24,7 @@ struct AssertComparisonRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertLessThan() throws {
         let source = """
         XCTAssertLessThan(a, b)

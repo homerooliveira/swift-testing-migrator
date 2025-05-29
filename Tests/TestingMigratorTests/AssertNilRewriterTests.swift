@@ -24,7 +24,7 @@ struct AssertNilRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertNotNil() throws {
         let source = """
         XCTAssertNotNil(value)
@@ -35,7 +35,7 @@ struct AssertNilRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertNotNilWithMessage() throws {
         let source = """
         XCTAssertNotNil(value, "Message")

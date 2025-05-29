@@ -24,7 +24,7 @@ struct AssertBoolRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertFalse() throws {
         let source = """
         XCTAssertFalse(value)
@@ -35,7 +35,7 @@ struct AssertBoolRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertFalseWithExpression() throws {
         let source = """
         XCTAssertFalse(value == true)

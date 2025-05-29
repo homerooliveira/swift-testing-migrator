@@ -24,7 +24,7 @@ struct AssertThrowRewriterTests {
         let modifiedContent = Rewriter().rewrite(source: source)
         #expect(modifiedContent == expected)
     }
-    
+
     @Test func testAssertNoThrow() throws {
         let source = """
         XCTAssertNoThrow(try something())
@@ -85,7 +85,7 @@ struct AssertThrowRewriterTests {
         #expect(modifiedContent == expected)
     }
 
-    @Test 
+    @Test
     func testAssertThrowsErrorWithMessageAndTrailingClosure() throws {
         let source = """
         XCTAssertThrowsError(try something(), "Message") { error in
