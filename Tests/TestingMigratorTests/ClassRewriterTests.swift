@@ -17,7 +17,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testStructWithFinalClass() throws {
@@ -34,7 +34,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassInheritanceRemoval() throws {
@@ -47,7 +47,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithStoredPropertyAndMethod() throws {
@@ -76,7 +76,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithMultipleInheritance() throws {
@@ -93,7 +93,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithoutXCTestInheritance() throws {
@@ -106,7 +106,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithExistingTestAttribute() throws {
@@ -123,7 +123,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithEmptyInheritanceClause() throws {
@@ -140,7 +140,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testMethodsNotStartingWithTest() throws {
@@ -169,7 +169,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testMultipleTestMethods() throws {
@@ -194,7 +194,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testPreservesLeadingTrivia() throws {
@@ -215,7 +215,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithMultipleModifiers() throws {
@@ -230,7 +230,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithComputedProperty() throws {
@@ -247,7 +247,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testStructAddsMutatingIfAccessesStoredProperty() throws {
@@ -264,7 +264,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testStructDoesNotAddMutatingIfNoStoredPropertyAccess() throws {
@@ -281,7 +281,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithAttributes() throws {
@@ -298,7 +298,7 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testClassWithTrailingTrivia() throws {
@@ -313,6 +313,90 @@ struct ClassRewriterTests {
         }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
+    }
+
+    @Test func testComplexSetupWithSuperCall() throws {
+        let source = """
+        class MyTests: XCTestCase {
+            var testValue: Int = 0
+
+            override func setUp() {
+                super.setUp()
+                testValue = 42
+                configureEnvironment()
+            }
+
+            private func configureEnvironment() {
+                // Configuration code
+            }
+
+            func testMyTest() {
+                // Test code
+            }
+        }
+        """
+        let expected = """
+        struct MyTests {
+            var testValue: Int = 0
+
+            init() {
+                testValue = 42
+                configureEnvironment()
+            }
+
+            private func configureEnvironment() {
+                // Configuration code
+            }
+
+            @Test func testMyTest() {
+                // Test code
+            }
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        expectStringDiff(modifiedContent, expected)
+    }
+
+        @Test func testComplexClassSetupWithSuperCall() throws {
+        let source = """
+        class MyTests: XCTestCase {
+            var testValue: Int = 0
+
+            override func setUp() {
+                super.setUp()
+                testValue = 42
+                configureEnvironment()
+            }
+
+            private func configureEnvironment() {
+                // Configuration code
+            }
+
+            func testMyTest() {
+                // Test code
+            }
+        }
+        """
+        let expected = """
+        class MyTests {
+            var testValue: Int = 0
+
+            init() {
+                testValue = 42
+                configureEnvironment()
+            }
+
+            private func configureEnvironment() {
+                // Configuration code
+            }
+
+            @Test func testMyTest() {
+                // Test code
+            }
+        }
+        """
+        let modifiedContent = Rewriter(.init(useClass: true)).rewrite(source: source)
+        expectStringDiff(modifiedContent, expected)
     }
 }

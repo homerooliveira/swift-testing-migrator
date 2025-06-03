@@ -11,7 +11,7 @@ struct ImportRewriterTests {
         import Testing
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testImportWithComment() throws {
@@ -24,6 +24,6 @@ struct ImportRewriterTests {
         internal import Testing
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 }

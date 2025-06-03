@@ -11,7 +11,7 @@ struct AssertThrowRewriterTests {
         #expect(throws: (any Error).self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertThrowsErrorWithMessage() throws {
@@ -22,7 +22,7 @@ struct AssertThrowRewriterTests {
         #expect(throws: (any Error).self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNoThrow() throws {
@@ -33,7 +33,7 @@ struct AssertThrowRewriterTests {
         #expect(throws: Never.self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNoThrowWithMessage() throws {
@@ -44,7 +44,7 @@ struct AssertThrowRewriterTests {
         #expect(throws: Never.self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertThrowsErrorWithFileAndLine() throws {
@@ -55,7 +55,7 @@ struct AssertThrowRewriterTests {
         #expect(throws: (any Error).self) { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertThrowsErrorWithMessageFileAndLine() throws {
@@ -66,7 +66,7 @@ struct AssertThrowRewriterTests {
         #expect(throws: (any Error).self, "Message") { try something() }
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertThrowsErrorWithTrailingClosure() throws {
@@ -82,7 +82,7 @@ struct AssertThrowRewriterTests {
         #expect(error is CocoaError)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test
@@ -97,6 +97,6 @@ struct AssertThrowRewriterTests {
         #expect(error is MyError)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 }

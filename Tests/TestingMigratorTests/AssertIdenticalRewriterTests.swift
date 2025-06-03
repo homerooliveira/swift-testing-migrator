@@ -11,7 +11,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a === b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertIdenticalWithMessage() throws {
@@ -22,7 +22,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a === b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNotIdentical() throws {
@@ -33,7 +33,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a !== b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNotIdenticalWithMessage() throws {
@@ -44,7 +44,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a !== b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertIdenticalWithFileAndLine() throws {
@@ -55,7 +55,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a === b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertIdenticalWithMessageFileAndLine() throws {
@@ -66,7 +66,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a === b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNotIdenticalWithFileAndLine() throws {
@@ -77,7 +77,7 @@ struct AssertIdenticalRewriterTests {
         #expect(a !== b)
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNotIdenticalWithMessageFileAndLine() throws {
@@ -88,6 +88,6 @@ struct AssertIdenticalRewriterTests {
         #expect(a !== b, "Message")
         """
         let modifiedContent = Rewriter().rewrite(source: source)
-        #expect(modifiedContent == expected)
+        expectStringDiff(modifiedContent, expected)
     }
 }
