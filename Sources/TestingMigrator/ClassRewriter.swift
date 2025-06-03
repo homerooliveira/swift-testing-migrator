@@ -163,8 +163,8 @@ final class ClassRewriter: SyntaxRewriter {
         // Remove override and other invalid modifiers for init
         let filteredModifiers = filterModifiersForInit(node.modifiers)
 
-        // Add self prefixes to the body when converting to class
-        let processedBody = node.body
+        // Remove super.setUp() calls when converting to init
+        let processedBody = removeSuperSetupCalls(from: node.body)
 
         return InitializerDeclSyntax(
             leadingTrivia: node.leadingTrivia,
@@ -182,6 +182,13 @@ final class ClassRewriter: SyntaxRewriter {
             body: processedBody,
             trailingTrivia: node.trailingTrivia
         )
+    }
+
+    private func removeSuperSetupCalls(from body: CodeBlockSyntax?) -> CodeBlockSyntax? {
+        guard let body = body else { return nil }
+
+        let rewriter = SuperMethodRemover()
+        return rewriter.rewrite(body).as(CodeBlockSyntax.self) ?? body
     }
 
     private func filterModifiersForInit(_ modifiers: DeclModifierListSyntax) -> DeclModifierListSyntax {
@@ -316,5 +323,45 @@ final class ClassRewriter: SyntaxRewriter {
             arguments: nil,
             rightParen: nil
         )
+    }
+}
+
+final class SuperMethodRemover: SyntaxRewriter {
+    override func visit(_ node: CodeBlockSyntax) -> CodeBlockSyntax {
+        let filteredStatements = node.statements.filter { item  in
+            !isSuperSetupCallItem(item)
+        }
+
+        return node.with(\.statements, filteredStatements)
+    }
+
+    private func isSuperSetupCallItem(_ item: CodeBlockItemSyntax) -> Bool {
+        // Check if the item is directly a FunctionCallExprSyntax (super.setUp())
+        if let functionCall = item.item.as(FunctionCallExprSyntax.self) {
+            return isSuperSetupCall(functionCall)
+        }
+
+        // Check if the item is an ExpressionStmtSyntax containing a super setup call
+        if let exprStmt = item.item.as(ExpressionStmtSyntax.self) {
+            if let functionCall = exprStmt.expression.as(FunctionCallExprSyntax.self) {
+                return isSuperSetupCall(functionCall)
+            }
+
+            // Handle try expressions: try super.setUpWithError()
+            if let tryExpr = exprStmt.expression.as(TryExprSyntax.self),
+               let functionCall = tryExpr.expression.as(FunctionCallExprSyntax.self) {
+                return isSuperSetupCall(functionCall)
+            }
+        }
+
+        return false
+    }
+
+    private func isSuperSetupCall(_ functionCall: FunctionCallExprSyntax) -> Bool {
+        guard let memberAccess = functionCall.calledExpression.as(MemberAccessExprSyntax.self),
+              memberAccess.base?.is(SuperExprSyntax.self) == true else {
+            return false
+        }
+        return true
     }
 }
