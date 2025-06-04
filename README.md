@@ -25,7 +25,7 @@ This tool handles the tedious migration work automatically, letting you focus on
 ## 🔧 Requirements
 
 - **Swift**: 6.1 or later
-- **Platform**: macOS 15 or later
+- **Platform**: macOS 15 or later, Linux and Windows
 
 ## 🚀 Installation & Usage
 
