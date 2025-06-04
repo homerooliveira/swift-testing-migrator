@@ -11,10 +11,12 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
     var inPlace: Bool = false
     @Flag(help: "Whether to process files recursively in directories.")
     var recursive = false
+    @Flag(help: "Whether to use test suite class-based.")
+    var useClass: Bool = false
 
     mutating func run() throws {
         let fileProcessor = FileProcessor()
-        let rewriter = Rewriter(Rewriter.Configuration(useClass: true))
+        let rewriter = Rewriter(Rewriter.Configuration(useClass: useClass))
 
         try fileProcessor.processPath(sourceFilePath, recursive: recursive) { content, fileURL in
             let modifiedSource = rewriter.rewrite(source: content).description

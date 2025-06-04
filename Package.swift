@@ -6,8 +6,9 @@ import PackageDescription
 let package = Package(
     name: "swift-testing-migrator",
     platforms: [
-        .macOS(.v15),
-    ], dependencies: [
+        .macOS(.v15)
+    ],
+    dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0"),
         .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
     ],
@@ -31,10 +32,10 @@ let package = Package(
         .testTarget(
             name: "TestingMigratorTests",
             dependencies: [
-                "TestingMigrator",
+                "TestingMigrator"
             ],
             resources: [
-                .copy("Resources/"),
+                .copy("Resources/")
             ],
             swiftSettings: .defaultSwiftSettings,
         ),

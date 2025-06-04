@@ -3,12 +3,12 @@ import SwiftSyntax
 final class PropertyAccessVisitor: SyntaxVisitor {
     let storedProperties: Set<String>
     var accessesStoredProperty = false
-
+    
     init(storedProperties: Set<String>) {
         self.storedProperties = storedProperties
         super.init(viewMode: .sourceAccurate)
     }
-
+    
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for self.property or implicit property access
         if let baseExpr = node.base {
@@ -20,10 +20,10 @@ final class PropertyAccessVisitor: SyntaxVisitor {
                 return .skipChildren
             }
         }
-
+        
         return .visitChildren
     }
-
+    
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for implicit property access (just propertyName without self.)
         if storedProperties.contains(node.baseName.text) {
@@ -33,15 +33,15 @@ final class PropertyAccessVisitor: SyntaxVisitor {
             // stored properties and local variables
             accessesStoredProperty = true
         }
-
+        
         return .visitChildren
     }
-
+    
     override func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for assignment operations (= operator)
         if let operatorToken = node.operator.as(BinaryOperatorExprSyntax.self),
            operatorToken.operator.text == "=" {
-
+            
             // Check if the left side is a stored property
             if let memberAccess = node.leftOperand.as(MemberAccessExprSyntax.self) {
                 if let baseExpr = memberAccess.base?.as(DeclReferenceExprSyntax.self),
@@ -56,10 +56,10 @@ final class PropertyAccessVisitor: SyntaxVisitor {
                 return .skipChildren
             }
         }
-
+        
         return .visitChildren
     }
-
+    
     override func visit(_ node: InOutExprSyntax) -> SyntaxVisitorContinueKind {
         // Check for inout usage of stored properties
         if let memberAccess = node.expression.as(MemberAccessExprSyntax.self) {
@@ -74,7 +74,7 @@ final class PropertyAccessVisitor: SyntaxVisitor {
             accessesStoredProperty = true
             return .skipChildren
         }
-
+        
         return .visitChildren
     }
 }

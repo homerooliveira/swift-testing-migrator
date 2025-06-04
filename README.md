@@ -68,23 +68,25 @@ swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 
 ### Assertion Transformations
 
-| XCTest | Swift Testing | Notes |
-|--------|---------------|-------|
-| `XCTAssert(condition)` | `#expect(condition)` | |
-| `XCTAssertTrue(condition)` | `#expect(condition)` | |
-| `XCTAssertFalse(condition)` | `#expect(!condition)` | |
-| `XCTAssertNil(value)` | `#expect(value == nil)` | |
-| `XCTAssertNotNil(value)` | `#expect(value != nil)` | |
-| `XCTAssertEqual(a, b)` | `#expect(a == b)` | |
-| `XCTAssertNotEqual(a, b)` | `#expect(a != b)` | |
-| `XCTAssertIdentical(a, b)` | `#expect(a === b)` | Reference equality |
-| `XCTAssertNotIdentical(a, b)` | `#expect(a !== b)` | Reference inequality |
-| `XCTAssertGreaterThan(a, b)` | `#expect(a > b)` | |
-| `XCTAssertGreaterThanOrEqual(a, b)` | `#expect(a >= b)` | |
-| `XCTAssertLessThan(a, b)` | `#expect(a < b)` | |
-| `XCTAssertLessThanOrEqual(a, b)` | `#expect(a <= b)` | |
-| `try XCTUnwrap(optional)` | `try #require(optional)` | Safe unwrapping |
-| `XCTFail("message")` | `Issue.record("message")` | Manual failure |
+| XCTest | Swift Testing |
+|--------|---------------|
+| `XCTAssert(condition)` | `#expect(condition)` |
+| `XCTAssertTrue(condition)` | `#expect(condition)` |
+| `XCTAssertFalse(condition)` | `#expect(!condition)` |
+| `XCTAssertNil(value)` | `#expect(value == nil)` |
+| `XCTAssertNotNil(value)` | `#expect(value != nil)` |
+| `XCTAssertEqual(a, b)` | `#expect(a == b)` |
+| `XCTAssertNotEqual(a, b)` | `#expect(a != b)` |
+| `XCTAssertIdentical(a, b)` | `#expect(a === b)` |
+| `XCTAssertNotIdentical(a, b)` | `#expect(a !== b)` |
+| `XCTAssertGreaterThan(a, b)` | `#expect(a > b)` |
+| `XCTAssertGreaterThanOrEqual(a, b)` | `#expect(a >= b)` |
+| `XCTAssertLessThan(a, b)` | `#expect(a < b)` |
+| `XCTAssertLessThanOrEqual(a, b)` | `#expect(a <= b)` |
+| `try XCTUnwrap(optional)` | `try #require(optional)` |
+| `XCTFail("message")` | `Issue.record("message")` |
+
+> **Note:** File and line parameters (e.g., `file: #file, line: #line`) are omitted in the migrated code, as they are not required in Swift Testing.
 
 ### Error Handling
 
@@ -96,12 +98,13 @@ swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 
 ### Structure Changes
 
-| XCTest | Swift Testing |
-|--------|---------------|
-| `import XCTest` | `import Testing` |
-| `class MyTests: XCTestCase` | `struct MyTests` or `class MyTests` |
-| `func testSomething() { }` | `@Test func something() { }` |
-| `override func setUp() async throws` | `init() async throws` |
+| XCTest | Swift Testing | Notes |
+|--------|---------------|---------------|
+| `import XCTest` | `import Testing` | |
+| `class MyTests: XCTestCase` | `struct MyTests` or `class MyTests` | Classes are converted to structs by default; use a configuration option to keep as class. |
+| `func testSomething() { }` | `@Test func something() { }` | Methods starting with `test` are annotated with `@Test`. |
+| `override func setUp() async throws` | `init() async throws` | `setUp`/`setUpWithError` are converted to initializers. |
+| `override func tearDown()` | `deinit` | Async or throwing `tearDown` methods are not supported and require manual migration. |
 
 ## 🏗️ Project Architecture
 
@@ -162,6 +165,7 @@ We welcome contributions! Here's how to get started:
 - Complex custom assertion macros may require manual adjustment
 - Parameterized tests need manual conversion to Swift Testing's parameterization syntax
 - Some XCTest-specific features (like performance testing) don't have direct Swift Testing equivalents
+- It is recomended to run formatting tools like `swift-format` after migration to ensure code style consistency
 
 ## 📄 License
 

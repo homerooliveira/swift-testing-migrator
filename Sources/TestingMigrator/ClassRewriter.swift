@@ -5,12 +5,16 @@ final class ClassRewriter: SyntaxRewriter {
     private var storedProperties: Set<String> = []
     private var methods: Set<String> = []
     private let setupMethods: Set<String> = ["setUp", "setUpWithError"]
+    private let tearDownMethods: Set<String> = ["tearDown", "tearDownWithError"]
+    private var hasTearDownMethod = false
 
     init(useClass: Bool) {
         self.useClass = useClass
     }
 
     override func visit(_ node: ClassDeclSyntax) -> DeclSyntax {
+        hasTearDownMethod = false
+
         let (processedNode, inheritanceFromXCTestCase) = processInheritanceClause(node)
         guard inheritanceFromXCTestCase else {
             return DeclSyntax(node)
@@ -32,6 +36,11 @@ final class ClassRewriter: SyntaxRewriter {
     override func visit(_ node: FunctionDeclSyntax) -> DeclSyntax {
         if isSetupMethod(node) {
             return DeclSyntax(convertSetupToInit(node))
+        }
+
+        if isTearDownMethod(node) {
+            hasTearDownMethod = true
+            return DeclSyntax(convertTearDownMethod(node))
         }
 
         guard isTestFunction(node), !hasTestAttribute(node) else {
@@ -96,9 +105,11 @@ final class ClassRewriter: SyntaxRewriter {
             modifiedNode.inheritanceClause = nil
             modifiedNode.name.trailingTrivia = .space
         } else {
-            var updatedTypes = filteredTypes
-            updatedTypes[updatedTypes.startIndex].leadingTrivia = .space
-            modifiedNode.inheritanceClause = InheritanceClauseSyntax(inheritedTypes: updatedTypes)
+            var updatedTypes = Array(filteredTypes)
+            if !updatedTypes.isEmpty {
+                updatedTypes[0] = updatedTypes[0].with(\.leadingTrivia, .space)
+            }
+            modifiedNode.inheritanceClause = InheritanceClauseSyntax(inheritedTypes: InheritedTypeListSyntax(updatedTypes))
         }
 
         return (modifiedNode, filteredTypes.count != originalTypes.count)
@@ -124,25 +135,80 @@ final class ClassRewriter: SyntaxRewriter {
     private func convertToStruct(_ node: ClassDeclSyntax) -> StructDeclSyntax {
         let filteredModifiers = filterModifiersForStruct(node.modifiers)
 
+        // Check if we need to add ~Copyable (when struct has tearDown methods converted to deinit)
+        var inheritanceClause = createInheritanceClauseForStruct(node)
+
+        if let clause = inheritanceClause {
+            // Ensure colon has no leading trivia and a single space trailing trivia
+            let newColon = clause.colon.with(\.leadingTrivia, []).with(\.trailingTrivia, .space)
+            let modifiedTypes = clause.inheritedTypes.map { type in
+                type.with(\.leadingTrivia, [])
+            }
+
+            inheritanceClause = InheritanceClauseSyntax(
+                colon: newColon,
+                inheritedTypes: InheritedTypeListSyntax(modifiedTypes)
+            )
+        }
+
+        let nameTrailingTrivia: Trivia = if hasTearDownMethod { [] } else { .space }
+        let structName = node.name.with(\.leadingTrivia, .space).with(\.trailingTrivia, nameTrailingTrivia)
+
         return StructDeclSyntax(
             leadingTrivia: node.leadingTrivia,
             attributes: node.attributes,
             modifiers: filteredModifiers,
-            name: node.name.with(\.leadingTrivia, .space),
+            name: structName,
             genericParameterClause: node.genericParameterClause,
-            inheritanceClause: node.inheritanceClause,
+            inheritanceClause: inheritanceClause,
             genericWhereClause: node.genericWhereClause,
             memberBlock: node.memberBlock,
             trailingTrivia: node.trailingTrivia
         )
     }
 
+    private func createInheritanceClauseForStruct(_ node: ClassDeclSyntax) -> InheritanceClauseSyntax? {
+        var inheritedTypes: [InheritedTypeSyntax] = []
+
+        // First add any existing inherited types (excluding XCTestCase)
+        if let existingTypes = node.inheritanceClause?.inheritedTypes {
+            inheritedTypes = Array(existingTypes.filter { $0.type.trimmedDescription != "XCTestCase" })
+        }
+
+        // Add ~Copyable if we have tearDown methods (which will become deinit)
+        if hasTearDownMethod {
+            let suppressedType = SuppressedTypeSyntax(
+                withoutTilde: .prefixOperator("~"),
+                type: IdentifierTypeSyntax(name: .identifier("Copyable"))
+            )
+
+            let inheritedType = InheritedTypeSyntax(
+                type: TypeSyntax(suppressedType)
+            )
+
+            inheritedTypes.append(inheritedType)
+        }
+
+        guard !inheritedTypes.isEmpty else {
+            return nil
+        }
+
+        // Set proper leading trivia on the first type
+        if !inheritedTypes.isEmpty {
+            inheritedTypes[0] = inheritedTypes[0].with(\.leadingTrivia, .space)
+        }
+
+        return InheritanceClauseSyntax(
+            colon: .colonToken(),
+            inheritedTypes: InheritedTypeListSyntax(inheritedTypes),
+            trailingTrivia: .space
+        )
+    }
+
     private func filterModifiersForStruct(_ modifiers: DeclModifierListSyntax) -> DeclModifierListSyntax {
         let invalidModifiers: Set<TokenKind> = [
             .keyword(.open),
-            .keyword(.final),
-            .keyword(.override),
-            .keyword(.convenience)
+            .keyword(.final)
         ]
         return modifiers.filter { !invalidModifiers.contains($0.name.tokenKind) }
     }
@@ -156,7 +222,11 @@ final class ClassRewriter: SyntaxRewriter {
     }
 
     private func isSetupMethod(_ node: FunctionDeclSyntax) -> Bool {
-        return setupMethods.contains(node.name.text)
+        setupMethods.contains(node.name.text)
+    }
+
+    private func isTearDownMethod(_ node: FunctionDeclSyntax) -> Bool {
+        tearDownMethods.contains(node.name.text)
     }
 
     private func convertSetupToInit(_ node: FunctionDeclSyntax) -> InitializerDeclSyntax {
@@ -164,7 +234,7 @@ final class ClassRewriter: SyntaxRewriter {
         let filteredModifiers = filterModifiersForInit(node.modifiers)
 
         // Remove super.setUp() calls when converting to init
-        let processedBody = removeSuperSetupCalls(from: node.body)
+        let processedBody = removeCalls(from: node.body, methods: setupMethods)
 
         return InitializerDeclSyntax(
             leadingTrivia: node.leadingTrivia,
@@ -184,10 +254,23 @@ final class ClassRewriter: SyntaxRewriter {
         )
     }
 
-    private func removeSuperSetupCalls(from body: CodeBlockSyntax?) -> CodeBlockSyntax? {
-        guard let body = body else { return nil }
+    private func convertTearDownMethod(_ node: FunctionDeclSyntax) -> DeinitializerDeclSyntax {
+        // Convert tearDown to deinitializer
+        let processedBody = removeCalls(from: node.body, methods: tearDownMethods)
 
-        let rewriter = SuperMethodsRemover(methods: setupMethods)
+        return DeinitializerDeclSyntax(
+            leadingTrivia: node.leadingTrivia,
+            attributes: node.attributes,
+            modifiers: DeclModifierListSyntax(), // deinit cannot have modifiers
+            deinitKeyword: .keyword(.deinit, trailingTrivia: .space),
+            body: processedBody,
+            trailingTrivia: node.trailingTrivia
+        )
+    }
+
+    func removeCalls(from body: CodeBlockSyntax?, methods: Set<String>) -> CodeBlockSyntax? {
+        guard let body = body else { return nil }
+        let rewriter = SuperMethodsRemover(methods: methods)
         return rewriter.rewrite(body).as(CodeBlockSyntax.self) ?? body
     }
 
@@ -234,6 +317,11 @@ final class ClassRewriter: SyntaxRewriter {
 
         // If visit() converted it to an InitializerDeclSyntax, return it as-is
         if processedDecl.is(InitializerDeclSyntax.self) {
+            return processedDecl
+        }
+
+        // If visit() converted it to a DeinitializerDeclSyntax, return it as-is
+        if processedDecl.is(DeinitializerDeclSyntax.self) {
             return processedDecl
         }
 

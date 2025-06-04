@@ -327,6 +327,11 @@ struct ClassRewriterTests {
                 configureEnvironment()
             }
 
+            overrride func tearDown() {
+                super.tearDown()
+                testValue = 0
+            }
+
             private func configureEnvironment() {
                 // Configuration code
             }
@@ -337,12 +342,16 @@ struct ClassRewriterTests {
         }
         """
         let expected = """
-        struct MyTests {
+        struct MyTests: ~Copyable {
             var testValue: Int = 0
 
             init() {
                 testValue = 42
                 configureEnvironment()
+            }
+
+            deinit {
+                testValue = 0
             }
 
             private func configureEnvironment() {
