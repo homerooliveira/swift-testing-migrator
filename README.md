@@ -81,6 +81,11 @@ swift run swift-testing-migrator Tests/ --in-place --recursive --parallel
 swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 ```
 
+**Migrate to class-based test suites:**
+```bash
+swift run swift-testing-migrator Tests/ --in-place --recursive --use-class
+```
+
 ### Command-Line Options
 
 | Option | Description |
@@ -88,6 +93,7 @@ swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 | `--in-place` | Modify files directly instead of printing to stdout |
 | `--recursive` | Process all Swift files in subdirectories |
 | `--parallel` | Enable parallel processing (recommended with `--in-place`) |
+| `--use-class` | Convert XCTestCase to class-based test suites instead of structs |
 | `--help` | Show usage information |
 
 ## 📋 Migration Reference
@@ -127,7 +133,7 @@ swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 | XCTest | Swift Testing | Notes |
 |--------|---------------|---------------|
 | `import XCTest` | `import Testing` | |
-| `class MyTests: XCTestCase` | `struct MyTests` or `class MyTests` | Classes are converted to structs by default; use a configuration option to keep as class. |
+| `class MyTests: XCTestCase` | `struct MyTests` or `class MyTests` | Classes are converted to structs by default; use `--use-class` to keep as classes. |
 | `func testSomething() { }` | `@Test func something() { }` | Methods starting with `test` are annotated with `@Test`. |
 | `override func setUp() async throws` | `init() async throws` | `setUp`/`setUpWithError` are converted to initializers. |
 | `override func tearDown()` | `deinit` | Async or throwing `tearDown` methods are not supported and require manual migration. |
