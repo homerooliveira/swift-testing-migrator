@@ -1,15 +1,38 @@
 import SwiftSyntax
 
+// MARK: - Strategy Protocol
+
+protocol RewritingStrategy {
+    func transformClass(_ node: ClassDeclSyntax, context: RewriterContext) -> DeclSyntax
+    func transformFunction(_ node: FunctionDeclSyntax, context: RewriterContext) -> FunctionDeclSyntax
+    func transformVariable(_ node: VariableDeclSyntax, context: RewriterContext) -> VariableDeclSyntax
+}
+
+// MARK: - Context
+
+struct RewriterContext {
+    let storedProperties: Set<String>
+    let methods: Set<String>
+    let hasTearDownMethod: Bool
+    let inheritanceFromXCTestCase: Bool
+}
+
+
+// MARK: - Main Rewriter Class
+
 final class ClassRewriter: SyntaxRewriter {
-    private let useClass: Bool
+    private let strategy: any RewritingStrategy
+
     private var storedProperties: Set<String> = []
     private var methods: Set<String> = []
-    private let setupMethods: Set<String> = ["setUp", "setUpWithError"]
-    private let tearDownMethods: Set<String> = ["tearDown", "tearDownWithError"]
     private var hasTearDownMethod = false
 
     init(useClass: Bool) {
-        self.useClass = useClass
+        self.strategy = if useClass {
+            ClassStrategy()
+        } else {
+            StructStrategy()
+        }
     }
 
     override func visit(_ node: ClassDeclSyntax) -> DeclSyntax {
@@ -20,99 +43,55 @@ final class ClassRewriter: SyntaxRewriter {
             return DeclSyntax(node)
         }
 
-        // Collect stored properties and methods before processing members
         storedProperties = collectStoredProperties(from: processedNode)
         methods = collectMethods(from: processedNode)
 
         let nodeWithUpdatedMembers = updateMemberFunctions(processedNode)
 
-        if useClass {
-            return DeclSyntax(nodeWithUpdatedMembers)
-        } else {
-            return DeclSyntax(convertToStruct(nodeWithUpdatedMembers))
-        }
+        let context = RewriterContext(
+            storedProperties: storedProperties,
+            methods: methods,
+            hasTearDownMethod: hasTearDownMethod,
+            inheritanceFromXCTestCase: inheritanceFromXCTestCase
+        )
+
+        return strategy.transformClass(nodeWithUpdatedMembers, context: context)
     }
 
     override func visit(_ node: FunctionDeclSyntax) -> DeclSyntax {
-        if isSetupMethod(node) {
-            return DeclSyntax(convertSetupToInit(node))
+        if node.isSetupMethod {
+            return DeclSyntax(node.convertToInit())
         }
 
-        if isTearDownMethod(node) {
+        if node.isTearDownMethod {
             hasTearDownMethod = true
-            return DeclSyntax(convertTearDownMethod(node))
+            return DeclSyntax(node.convertToDeinit())
         }
 
-        guard isTestFunction(node), !hasTestAttribute(node) else {
+        guard node.isTestFunction, !node.hasTestAttribute else {
             return DeclSyntax(node)
         }
 
-        return DeclSyntax(addTestAttribute(to: node))
+        let context = RewriterContext(
+            storedProperties: storedProperties,
+            methods: methods,
+            hasTearDownMethod: hasTearDownMethod,
+            inheritanceFromXCTestCase: true
+        )
+
+        let nodeWithTestAttribute = node.addingTestAttribute()
+        return DeclSyntax(strategy.transformFunction(nodeWithTestAttribute, context: context))
     }
 
     override func visit(_ node: VariableDeclSyntax) -> DeclSyntax {
-        guard !useClass else {
-            return DeclSyntax(node)
-        }
+        let context = RewriterContext(
+            storedProperties: storedProperties,
+            methods: methods,
+            hasTearDownMethod: hasTearDownMethod,
+            inheritanceFromXCTestCase: true
+        )
 
-        // Remove override keyword from variables when converting to struct
-        let filteredModifiers = filterOverrideModifier(node.modifiers)
-        return DeclSyntax(node.with(\.modifiers, filteredModifiers))
-    }
-
-    // MARK: - Private Methods
-
-    private func collectStoredProperties(from node: ClassDeclSyntax) -> Set<String> {
-        var properties: Set<String> = []
-
-        for member in node.memberBlock.members {
-            if let varDecl = member.decl.as(VariableDeclSyntax.self) {
-                // Check if it's a stored property (not computed)
-                for binding in varDecl.bindings {
-                    if let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
-                       binding.accessorBlock == nil { // No accessor block means stored property
-                        properties.insert(identifier.identifier.text)
-                    }
-                }
-            }
-        }
-
-        return properties
-    }
-
-    private func collectMethods(from node: ClassDeclSyntax) -> Set<String> {
-        var methods: Set<String> = []
-
-        for member in node.memberBlock.members {
-            if let funcDecl = member.decl.as(FunctionDeclSyntax.self) {
-                methods.insert(funcDecl.name.text)
-            }
-        }
-
-        return methods
-    }
-
-    private func processInheritanceClause(_ node: ClassDeclSyntax) -> (ClassDeclSyntax, Bool) {
-        var modifiedNode = node
-
-        guard let originalTypes = node.inheritanceClause?.inheritedTypes else {
-            return (modifiedNode, false)
-        }
-
-        let filteredTypes = originalTypes.filter { $0.type.trimmedDescription != "XCTestCase" }
-
-        if filteredTypes.isEmpty {
-            modifiedNode.inheritanceClause = nil
-            modifiedNode.name.trailingTrivia = .space
-        } else {
-            var updatedTypes = Array(filteredTypes)
-            if !updatedTypes.isEmpty {
-                updatedTypes[0] = updatedTypes[0].with(\.leadingTrivia, .space)
-            }
-            modifiedNode.inheritanceClause = InheritanceClauseSyntax(inheritedTypes: InheritedTypeListSyntax(updatedTypes))
-        }
-
-        return (modifiedNode, filteredTypes.count != originalTypes.count)
+        return DeclSyntax(strategy.transformVariable(node, context: context))
     }
 
     private func updateMemberFunctions(_ node: ClassDeclSyntax) -> ClassDeclSyntax {
@@ -121,7 +100,7 @@ final class ClassRewriter: SyntaxRewriter {
         let updatedMembers = node.memberBlock.members.map { member in
             var updatedMember = member
             if let funcDecl = member.decl.as(FunctionDeclSyntax.self) {
-                updatedMember.decl = processFunctionForStructConversion(funcDecl)
+                updatedMember.decl = visit(funcDecl)
             } else if let varDecl = member.decl.as(VariableDeclSyntax.self) {
                 updatedMember.decl = visit(varDecl)
             }
@@ -131,285 +110,38 @@ final class ClassRewriter: SyntaxRewriter {
         modifiedNode.memberBlock.members = MemberBlockItemListSyntax(updatedMembers)
         return modifiedNode
     }
+}
 
-    private func convertToStruct(_ node: ClassDeclSyntax) -> StructDeclSyntax {
-        let filteredModifiers = filterModifiersForStruct(node.modifiers)
+// MARK: - Class Strategy
 
-        // Check if we need to add ~Copyable (when struct has tearDown methods converted to deinit)
-        var inheritanceClause = createInheritanceClauseForStruct(node)
-
-        if let clause = inheritanceClause {
-            // Ensure colon has no leading trivia and a single space trailing trivia
-            let newColon = clause.colon.with(\.leadingTrivia, []).with(\.trailingTrivia, .space)
-            let modifiedTypes = clause.inheritedTypes.map { type in
-                type.with(\.leadingTrivia, [])
-            }
-
-            inheritanceClause = InheritanceClauseSyntax(
-                colon: newColon,
-                inheritedTypes: InheritedTypeListSyntax(modifiedTypes)
-            )
-        }
-
-        let nameTrailingTrivia: Trivia = if hasTearDownMethod { [] } else { .space }
-        let structName = node.name.with(\.leadingTrivia, .space).with(\.trailingTrivia, nameTrailingTrivia)
-
-        return StructDeclSyntax(
-            leadingTrivia: node.leadingTrivia,
-            attributes: node.attributes,
-            modifiers: filteredModifiers,
-            name: structName,
-            genericParameterClause: node.genericParameterClause,
-            inheritanceClause: inheritanceClause,
-            genericWhereClause: node.genericWhereClause,
-            memberBlock: node.memberBlock,
-            trailingTrivia: node.trailingTrivia
-        )
+struct ClassStrategy: RewritingStrategy {
+    func transformClass(_ node: ClassDeclSyntax, context: RewriterContext) -> DeclSyntax {
+        DeclSyntax(node)
     }
 
-    private func createInheritanceClauseForStruct(_ node: ClassDeclSyntax) -> InheritanceClauseSyntax? {
-        var inheritedTypes: [InheritedTypeSyntax] = []
-
-        // First add any existing inherited types (excluding XCTestCase)
-        if let existingTypes = node.inheritanceClause?.inheritedTypes {
-            inheritedTypes = Array(existingTypes.filter { $0.type.trimmedDescription != "XCTestCase" })
-        }
-
-        // Add ~Copyable if we have tearDown methods (which will become deinit)
-        if hasTearDownMethod {
-            let suppressedType = SuppressedTypeSyntax(
-                withoutTilde: .prefixOperator("~"),
-                type: IdentifierTypeSyntax(name: .identifier("Copyable"))
-            )
-
-            let inheritedType = InheritedTypeSyntax(
-                type: TypeSyntax(suppressedType)
-            )
-
-            inheritedTypes.append(inheritedType)
-        }
-
-        guard !inheritedTypes.isEmpty else {
-            return nil
-        }
-
-        // Set proper leading trivia on the first type
-        if !inheritedTypes.isEmpty {
-            inheritedTypes[0] = inheritedTypes[0].with(\.leadingTrivia, .space)
-        }
-
-        return InheritanceClauseSyntax(
-            colon: .colonToken(),
-            inheritedTypes: InheritedTypeListSyntax(inheritedTypes),
-            trailingTrivia: .space
-        )
+    func transformFunction(_ node: FunctionDeclSyntax, context: RewriterContext) -> FunctionDeclSyntax {
+        node.addingSelfPrefixes(context: context)
     }
 
-    private func filterModifiersForStruct(_ modifiers: DeclModifierListSyntax) -> DeclModifierListSyntax {
-        let invalidModifiers: Set<TokenKind> = [
-            .keyword(.open),
-            .keyword(.final)
-        ]
-        return modifiers.filter { !invalidModifiers.contains($0.name.tokenKind) }
+    func transformVariable(_ node: VariableDeclSyntax, context: RewriterContext) -> VariableDeclSyntax {
+        node
+    }
+}
+
+// MARK: - Struct Strategy
+
+struct StructStrategy: RewritingStrategy {
+    func transformClass(_ node: ClassDeclSyntax, context: RewriterContext) -> DeclSyntax {
+        DeclSyntax(node.convertingToStruct(context: context))
     }
 
-    private func filterOverrideModifier(_ modifiers: DeclModifierListSyntax) -> DeclModifierListSyntax {
-        modifiers.filter { $0.name.tokenKind != .keyword(.override) }
+    func transformFunction(_ node: FunctionDeclSyntax, context: RewriterContext) -> FunctionDeclSyntax {
+        let withoutOverride = node.with(\.modifiers, node.modifiers.filteringOverride())
+        return withoutOverride.addingMutatingIfNeeded(context: context)
     }
 
-    private func isTestFunction(_ node: FunctionDeclSyntax) -> Bool {
-        node.name.text.hasPrefix("test")
-    }
-
-    private func isSetupMethod(_ node: FunctionDeclSyntax) -> Bool {
-        setupMethods.contains(node.name.text)
-    }
-
-    private func isTearDownMethod(_ node: FunctionDeclSyntax) -> Bool {
-        tearDownMethods.contains(node.name.text)
-    }
-
-    private func convertSetupToInit(_ node: FunctionDeclSyntax) -> InitializerDeclSyntax {
-        // Remove override and other invalid modifiers for init
-        let filteredModifiers = filterModifiersForInit(node.modifiers)
-
-        // Remove super.setUp() calls when converting to init
-        let processedBody = removeCalls(from: node.body, methods: setupMethods)
-
-        return InitializerDeclSyntax(
-            leadingTrivia: node.leadingTrivia,
-            attributes: node.attributes,
-            modifiers: filteredModifiers,
-            initKeyword: .keyword(.`init`),
-            signature: FunctionSignatureSyntax(
-                parameterClause: FunctionParameterClauseSyntax(
-                    leftParen: node.signature.parameterClause.leftParen,
-                    parameters: FunctionParameterListSyntax(),
-                    rightParen: node.signature.parameterClause.rightParen
-                ),
-                effectSpecifiers: node.signature.effectSpecifiers
-            ),
-            body: processedBody,
-            trailingTrivia: node.trailingTrivia
-        )
-    }
-
-    private func convertTearDownMethod(_ node: FunctionDeclSyntax) -> DeinitializerDeclSyntax {
-        // Convert tearDown to deinitializer
-        let processedBody = removeCalls(from: node.body, methods: tearDownMethods)
-
-        return DeinitializerDeclSyntax(
-            leadingTrivia: node.leadingTrivia,
-            attributes: node.attributes,
-            modifiers: DeclModifierListSyntax(), // deinit cannot have modifiers
-            deinitKeyword: .keyword(.deinit, trailingTrivia: .space),
-            body: processedBody,
-            trailingTrivia: node.trailingTrivia
-        )
-    }
-
-    func removeCalls(from body: CodeBlockSyntax?, methods: Set<String>) -> CodeBlockSyntax? {
-        guard let body = body else { return nil }
-        let rewriter = SuperMethodsRemover(methods: methods)
-        return rewriter.rewrite(body).as(CodeBlockSyntax.self) ?? body
-    }
-
-    private func filterModifiersForInit(_ modifiers: DeclModifierListSyntax) -> DeclModifierListSyntax {
-        let invalidModifiers: Set<TokenKind> = [
-            .keyword(.override),
-            .keyword(.final),
-            .keyword(.open),
-            .keyword(.convenience)
-        ]
-        return modifiers.filter { !invalidModifiers.contains($0.name.tokenKind) }
-    }
-
-    private func hasTestAttribute(_ node: FunctionDeclSyntax) -> Bool {
-        node.attributes.contains { attribute in
-            attribute.as(AttributeSyntax.self)?.attributeName.trimmed.description == "Test"
-        }
-    }
-
-    private func addTestAttribute(to node: FunctionDeclSyntax) -> FunctionDeclSyntax {
-        let testAttribute = createTestAttribute()
-        var updatedAttributes = node.attributes
-        updatedAttributes.append(AttributeListSyntax.Element(testAttribute))
-
-        // Add self prefixes to the body when converting to class
-        let processedBody = node.body
-
-        let modifiedNode = node
-            .with(\.attributes, updatedAttributes)
-            .with(\.funcKeyword.leadingTrivia, .space)
-            .with(\.leadingTrivia, node.leadingTrivia)
-            .with(\.body, processedBody)
-
-        // Remove override modifier if converting to struct and it's not a test function being kept as class
-        if useClass {
-            return modifiedNode
-        } else {
-            return removeOverrideModifier(from: modifiedNode)
-        }
-    }
-
-    private func processFunctionForStructConversion(_ node: FunctionDeclSyntax) -> DeclSyntax {
-        let processedDecl = visit(node)
-
-        // If visit() converted it to an InitializerDeclSyntax, return it as-is
-        if processedDecl.is(InitializerDeclSyntax.self) {
-            return processedDecl
-        }
-
-        // If visit() converted it to a DeinitializerDeclSyntax, return it as-is
-        if processedDecl.is(DeinitializerDeclSyntax.self) {
-            return processedDecl
-        }
-
-        // Otherwise, it's still a FunctionDeclSyntax, so handle override modifier removal and mutating
-        let processedForTest = processedDecl.as(FunctionDeclSyntax.self) ?? node
-
-        if useClass {
-            // Add self prefixes when converting to class
-            let withSelfPrefixes = addSelfPrefixesToFunction(processedForTest)
-            return DeclSyntax(withSelfPrefixes)
-        } else {
-            let withoutOverride = removeOverrideModifier(from: processedForTest)
-            return DeclSyntax(addMutatingIfNeeded(to: withoutOverride))
-        }
-    }
-
-    private func removeOverrideModifier(from node: FunctionDeclSyntax) -> FunctionDeclSyntax {
-        let filteredModifiers = filterOverrideModifier(node.modifiers)
+    func transformVariable(_ node: VariableDeclSyntax, context: RewriterContext) -> VariableDeclSyntax {
+        let filteredModifiers = node.modifiers.filteringOverride()
         return node.with(\.modifiers, filteredModifiers)
-    }
-
-    private func addMutatingIfNeeded(to node: FunctionDeclSyntax) -> FunctionDeclSyntax {
-        // Only add mutating when converting to struct, not when keeping as class
-        guard !useClass else {
-            return node
-        }
-
-        // Skip if already has mutating modifier
-        let hasMutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
-
-        guard !hasMutating else {
-            return node
-        }
-
-        // Check if function body accesses stored properties in a potentially mutating way
-        guard let body = node.body,
-              functionAccessesStoredProperties(body: body) else {
-            return node
-        }
-
-        let leadingTrivia = if node.attributes.isEmpty {
-            node.leadingTrivia
-        } else {
-            Trivia.space
-        }
-
-        // Add mutating modifier
-        let mutatingModifier = DeclModifierSyntax(
-            leadingTrivia: leadingTrivia,
-            name: .keyword(.mutating)
-        )
-
-        var updatedModifiers = node.modifiers
-        updatedModifiers.append(mutatingModifier)
-
-        return node.with(\.modifiers, updatedModifiers)
-            .with(\.funcKeyword.leadingTrivia, .space)
-    }
-
-    private func functionAccessesStoredProperties(body: CodeBlockSyntax) -> Bool {
-        let visitor = PropertyAccessVisitor(storedProperties: storedProperties)
-        visitor.walk(body)
-        return visitor.accessesStoredProperty
-    }
-
-    private func addSelfPrefixesToFunction(_ node: FunctionDeclSyntax) -> FunctionDeclSyntax {
-        guard let body = node.body else {
-            return node
-        }
-
-        let rewriter = SelfPrefixRewriter(
-            storedProperties: storedProperties,
-            methods: methods
-        )
-
-        let processedBody = rewriter.rewrite(body).as(CodeBlockSyntax.self) ?? body
-
-        return node.with(\.body, processedBody)
-    }
-
-    private func createTestAttribute() -> AttributeSyntax {
-        AttributeSyntax(
-            leadingTrivia: [],
-            atSign: .atSignToken(),
-            attributeName: IdentifierTypeSyntax(name: .identifier("Test")),
-            leftParen: nil,
-            arguments: nil,
-            rightParen: nil
-        )
     }
 }
