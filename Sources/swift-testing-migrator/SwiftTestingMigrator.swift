@@ -13,18 +13,26 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
     var recursive = false
     @Flag(help: "Whether to use test suite class-based.")
     var useClass: Bool = false
+    @Flag(help: "Whether to run the migration in parallel.")
+    var parallel: Bool = false
 
-    mutating func run() throws {
+    func run() async throws {
         let fileProcessor = FileProcessor()
-        let rewriter = Rewriter(Rewriter.Configuration(useClass: useClass))
 
-        try fileProcessor.processPath(sourceFilePath, recursive: recursive) { content, fileURL in
+        let processPath: @Sendable (String, URL) throws -> Void = { content, fileURL in
+            let rewriter = Rewriter(Rewriter.Configuration(useClass: useClass))
             let modifiedSource = rewriter.rewrite(source: content).description
             if inPlace {
                 try modifiedSource.write(to: fileURL, atomically: true, encoding: .utf8)
             } else {
                 print(modifiedSource)
             }
+        }
+
+        if parallel {
+            try await fileProcessor.processAsyncPath(sourceFilePath, recursive: recursive, processContent: processPath)
+        } else {
+            try fileProcessor.processPath(sourceFilePath, recursive: recursive, processContent: processPath)
         }
     }
 }
