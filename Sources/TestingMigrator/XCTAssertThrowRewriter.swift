@@ -1,22 +1,23 @@
-import SwiftSyntax
 import SwiftParser
+import SwiftSyntax
 
 final class XCTAssertThrowRewriter: SyntaxRewriter {
 
     let assertions: [String: String] = [
         "XCTAssertThrowsError": "(any Error).self",
-        "XCTAssertNoThrow": "Never.self"
+        "XCTAssertNoThrow": "Never.self",
     ]
 
     override func visit(_ node: CodeBlockItemListSyntax) -> CodeBlockItemListSyntax {
         let newNodes = node.flatMap { codeBlock in
-             let visitedBlock = super.visit(codeBlock)
+            let visitedBlock = super.visit(codeBlock)
 
             if case .expr(let expression) = visitedBlock.item,
-               let function = expression.as(FunctionCallExprSyntax.self) {
-               return _visit(function)
+                let function = expression.as(FunctionCallExprSyntax.self)
+            {
+                return _visit(function)
             } else {
-               return [visitedBlock]
+                return [visitedBlock]
             }
         }
 
@@ -25,7 +26,8 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
 
     func _visit(_ node: FunctionCallExprSyntax) -> [CodeBlockItemSyntax] {
         guard let identifierExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-              let errorType = assertions[identifierExpr.baseName.text] else {
+            let errorType = assertions[identifierExpr.baseName.text]
+        else {
             return [
                 CodeBlockItemSyntax(
                     item: .expr(ExprSyntax(node))
@@ -33,7 +35,7 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
             ]
         }
 
-        let arguments  = node.arguments.filter { $0.label == nil }
+        let arguments = node.arguments.filter { $0.label == nil }
 
         guard arguments.count >= 1 else {
             return [
@@ -65,9 +67,10 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
                 statements: CodeBlockItemListSyntax(
                     [
                         CodeBlockItemSyntax(
-                            item: .expr(firstArgExpression
-                                .with(\.leadingTrivia, .space)
-                                .with(\.trailingTrivia, .space))
+                            item: .expr(
+                                firstArgExpression
+                                    .with(\.leadingTrivia, .space)
+                                    .with(\.trailingTrivia, .space))
                         )
                     ],
                 )
@@ -103,14 +106,15 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
 
             let parameter = trailingClosure.signature?.parameterClause.flatMap(unwrapClosureParameter(_:)) ?? "$0"
 
-            blockItems.append(contentsOf: trailingClosure.statements.map { (statement: CodeBlockItemListSyntax.Element) in
-                updateMemberAccessIfNeeded(
-                    statement,
-                    leadingTrivia: node.leadingTrivia,
-                    trailingTrivia: node.trailingTrivia,
-                    parameter: parameter
-                )
-            })
+            blockItems.append(
+                contentsOf: trailingClosure.statements.map { (statement: CodeBlockItemListSyntax.Element) in
+                    updateMemberAccessIfNeeded(
+                        statement,
+                        leadingTrivia: node.leadingTrivia,
+                        trailingTrivia: node.trailingTrivia,
+                        parameter: parameter
+                    )
+                })
         } else {
             blockItems.append(
                 CodeBlockItemSyntax(
@@ -124,10 +128,10 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
 
     func unwrapClosureParameter(_ parameter: ClosureSignatureSyntax.ParameterClause) -> String? {
         switch parameter {
-            case .simpleInput(let parameters):
-                parameters.first?.name.trimmed.description
-            case .parameterClause(let parameters):
-                parameters.parameters.first?.firstName.trimmed.description
+        case .simpleInput(let parameters):
+            parameters.first?.name.trimmed.description
+        case .parameterClause(let parameters):
+            parameters.parameters.first?.firstName.trimmed.description
         }
     }
 
@@ -141,7 +145,8 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
         let newTrivia = Trivia(pieces: [.newlines(1), space])
 
         if case .expr(let expression) = statement.item,
-           let function = expression.as(FunctionCallExprSyntax.self) {
+            let function = expression.as(FunctionCallExprSyntax.self)
+        {
             let newArguments = function.arguments.map { label in
                 guard let member = label.expression.as(MemberAccessExprSyntax.self) else {
                     return label
@@ -158,7 +163,8 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
                 return label.with(\.expression, ExprSyntax(newMember))
             }
 
-            return statement
+            return
+                statement
                 .with(\.item, .expr(ExprSyntax(function.with(\.arguments, LabeledExprListSyntax(newArguments)))))
                 .with(\.leadingTrivia, newTrivia)
         } else {

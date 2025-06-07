@@ -1,28 +1,29 @@
-import Testing
-@testable import TestingMigrator
 import SwiftSyntax
+import Testing
+
+@testable import TestingMigrator
 
 struct ImportRewriterTests {
     @Test func testImport() throws {
         let source = """
-        import XCTest
-        """
+            import XCTest
+            """
         let expected = """
-        import Testing
-        """
+            import Testing
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testImportWithComment() throws {
         let source = """
-        // Comment
-        internal import XCTest
-        """
+            // Comment
+            internal import XCTest
+            """
         let expected = """
-        // Comment
-        internal import Testing
-        """
+            // Comment
+            internal import Testing
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }

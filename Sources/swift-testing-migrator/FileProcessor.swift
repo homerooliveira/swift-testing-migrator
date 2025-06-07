@@ -55,21 +55,25 @@ struct FileProcessor {
     /// Gets Swift files from a directory
     private func swiftFilesFromDirectory(_ directoryURL: URL, recursive: Bool) throws -> [URL] {
         let resourceKeys: [URLResourceKey] = [.isRegularFileKey, .isDirectoryKey]
-        let options: FileManager.DirectoryEnumerationOptions = if recursive {
-            [.skipsHiddenFiles]
-        } else {
-            [.skipsSubdirectoryDescendants, .skipsHiddenFiles]
-        }
+        let options: FileManager.DirectoryEnumerationOptions =
+            if recursive {
+                [.skipsHiddenFiles]
+            } else {
+                [.skipsSubdirectoryDescendants, .skipsHiddenFiles]
+            }
 
-        guard let enumerator = FileManager.default.enumerator(
-            at: directoryURL,
-            includingPropertiesForKeys: resourceKeys,
-            options: options
-        ) else {
+        guard
+            let enumerator = FileManager.default.enumerator(
+                at: directoryURL,
+                includingPropertiesForKeys: resourceKeys,
+                options: options
+            )
+        else {
             throw FileProcessorError.cannotEnumerateDirectory(directoryURL.path)
         }
 
-        return try enumerator
+        return
+            try enumerator
             .compactMap { $0 as? URL }
             .filter { try $0.isSwiftFile() }
     }

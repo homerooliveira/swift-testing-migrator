@@ -65,12 +65,13 @@ final class XCTAssertUnifiedRewriter: SyntaxRewriter {
         "XCTAssertGreaterThan": AssertionInfo("#expect", .greaterThan),
         "XCTAssertGreaterThanOrEqual": AssertionInfo("#expect", .greaterThanOrEqual),
         "XCTAssertLessThanOrEqual": AssertionInfo("#expect", .lessThanOrEqual),
-        "XCTAssertLessThan": AssertionInfo("#expect", .lessThan)
+        "XCTAssertLessThan": AssertionInfo("#expect", .lessThan),
     ]
 
     override func visit(_ node: FunctionCallExprSyntax) -> ExprSyntax {
         guard let identifierExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
-              let assertInfo = assertions[identifierExpr.baseName.text] else {
+            let assertInfo = assertions[identifierExpr.baseName.text]
+        else {
             return super.visit(node)
         }
 
@@ -130,11 +131,12 @@ final class XCTAssertUnifiedRewriter: SyntaxRewriter {
     }
 
     private func createPrefixExpression(operator opType: OperatorType, operand: LabeledExprSyntax) -> ExprSyntax {
-        let newExpression: any ExprSyntaxProtocol = if operand.expression.is(SequenceExprSyntax.self) {
-            TupleExprSyntax(elements: LabeledExprListSyntax([operand]))
-        } else {
-            operand.expression
-        }
+        let newExpression: any ExprSyntaxProtocol =
+            if operand.expression.is(SequenceExprSyntax.self) {
+                TupleExprSyntax(elements: LabeledExprListSyntax([operand]))
+            } else {
+                operand.expression
+            }
 
         return ExprSyntax(PrefixOperatorExprSyntax(operator: opType.token, expression: newExpression))
     }

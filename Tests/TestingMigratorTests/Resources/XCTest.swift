@@ -3,7 +3,7 @@ import XCTest
 
 final class ArrayExtensionsTests: XCTestCase {
     func testSubscriptGet() {
-        XCTAssertThrowsError(try f()) { error in 
+        XCTAssertThrowsError(try f()) { error in
             XCTAssertEqual(error.localizedDescription, "bla")
             let number: Int? = 1
             XCTAssertNotNil(number)

@@ -66,7 +66,8 @@ extension FunctionDeclSyntax {
         )
         var updatedAttributes = attributes
         updatedAttributes.append(AttributeListSyntax.Element(testAttribute))
-        return self
+        return
+            self
             .with(\.attributes, updatedAttributes)
             .with(\.funcKeyword.leadingTrivia, .space)
             .with(\.leadingTrivia, leadingTrivia)

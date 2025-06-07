@@ -7,7 +7,8 @@ extension SyntaxRewriter {
             if let varDecl = member.decl.as(VariableDeclSyntax.self) {
                 for binding in varDecl.bindings {
                     if let identifier = binding.pattern.as(IdentifierPatternSyntax.self),
-                       binding.accessorBlock == nil {
+                        binding.accessorBlock == nil
+                    {
                         properties.insert(identifier.identifier.text)
                     }
                 }

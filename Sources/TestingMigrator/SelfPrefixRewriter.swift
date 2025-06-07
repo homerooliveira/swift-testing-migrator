@@ -55,13 +55,13 @@ final class SelfPrefixRewriter: SyntaxRewriter {
     }
 
     override func visit(_ node: TryExprSyntax) -> ExprSyntax {
-        return ExprSyntax(node.with(\.expression, visit(node.expression)))
+        ExprSyntax(node.with(\.expression, visit(node.expression)))
     }
 
     // MARK: - Closure Handling
 
     override func visit(_ node: ClosureExprSyntax) -> ExprSyntax {
-        return withClosureContext {
+        withClosureContext {
             extractClosureParameters(from: node.signature)
             let processedStatements = node.statements.map { visit($0) }
             return node.with(\.statements, CodeBlockItemListSyntax(processedStatements))
@@ -77,7 +77,7 @@ final class SelfPrefixRewriter: SyntaxRewriter {
     }
 
     override func visit(_ node: ForStmtSyntax) -> StmtSyntax {
-        return withLocalVariableScope {
+        withLocalVariableScope {
             trackPatternVariable(node.pattern)
             let processedBody = visit(node.body)
             return StmtSyntax(node.with(\.body, processedBody))
@@ -90,7 +90,7 @@ final class SelfPrefixRewriter: SyntaxRewriter {
     }
 
     override func visit(_ node: IfExprSyntax) -> ExprSyntax {
-        return withLocalVariableScope {
+        withLocalVariableScope {
             trackOptionalBindings(from: node.conditions)
             return super.visit(node)
         }
@@ -104,9 +104,8 @@ final class SelfPrefixRewriter: SyntaxRewriter {
     // MARK: - Helper Methods
 
     private func shouldAddSelfPrefix(for identifier: String) -> Bool {
-        !localVariables.contains(identifier) &&
-               !parameters.contains(identifier) &&
-               (storedProperties.contains(identifier) || methods.contains(identifier))
+        !localVariables.contains(identifier) && !parameters.contains(identifier)
+            && (storedProperties.contains(identifier) || methods.contains(identifier))
     }
 
     private func isAlreadySelfPrefixed(_ node: MemberAccessExprSyntax) -> Bool {
@@ -124,7 +123,8 @@ final class SelfPrefixRewriter: SyntaxRewriter {
         var updatedNode = node.with(\.arguments, LabeledExprListSyntax(processedArguments))
 
         if let trailingClosure = node.trailingClosure,
-           let newTrailingClosure = visit(trailingClosure).as(ClosureExprSyntax.self) {
+            let newTrailingClosure = visit(trailingClosure).as(ClosureExprSyntax.self)
+        {
             updatedNode = updatedNode.with(\.trailingClosure, newTrailingClosure)
         }
 
@@ -140,7 +140,8 @@ final class SelfPrefixRewriter: SyntaxRewriter {
 
         // Handle trailing closure if present
         if let trailingClosure = node.trailingClosure,
-           let newTrailingClosure = visit(trailingClosure).as(ClosureExprSyntax.self) {
+            let newTrailingClosure = visit(trailingClosure).as(ClosureExprSyntax.self)
+        {
             updatedNode = updatedNode.with(\.trailingClosure, newTrailingClosure)
         }
 
@@ -197,7 +198,8 @@ final class SelfPrefixRewriter: SyntaxRewriter {
 
     private func extractClosureParameters(from signature: ClosureSignatureSyntax?) {
         guard let signature = signature,
-              let parameterClause = signature.parameterClause else { return }
+            let parameterClause = signature.parameterClause
+        else { return }
 
         switch parameterClause {
         case .parameterClause(let clause):
@@ -227,7 +229,7 @@ final class SelfPrefixRewriter: SyntaxRewriter {
     }
 
     private func processVariableBindings(_ bindings: PatternBindingListSyntax) -> [PatternBindingSyntax] {
-        return bindings.map { binding in
+        bindings.map { binding in
             guard let initializer = binding.initializer else { return binding }
             let processedInitializer = initializer.with(\.value, visit(initializer.value))
             return binding.with(\.initializer, processedInitializer)

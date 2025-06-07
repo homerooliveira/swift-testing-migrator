@@ -1,103 +1,104 @@
-import Testing
-@testable import TestingMigrator
 import SwiftSyntax
+import Testing
+
+@testable import TestingMigrator
 
 struct AssertBoolRewriterTests {
     @Test func testAssertTrue() throws {
         let source = """
-        XCTAssertTrue(value)
-        """
+            XCTAssertTrue(value)
+            """
         let expected = """
-        #expect(value)
-        """
+            #expect(value)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertTrueWithMessage() throws {
         let source = """
-        XCTAssertTrue(value, "Message")
-        """
+            XCTAssertTrue(value, "Message")
+            """
         let expected = """
-        #expect(value, "Message")
-        """
+            #expect(value, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertFalse() throws {
         let source = """
-        XCTAssertFalse(value)
-        """
+            XCTAssertFalse(value)
+            """
         let expected = """
-        #expect(!value)
-        """
+            #expect(!value)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertFalseWithExpression() throws {
         let source = """
-        XCTAssertFalse(value == true)
-        """
+            XCTAssertFalse(value == true)
+            """
         let expected = """
-        #expect(!(value == true))
-        """
+            #expect(!(value == true))
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertFalseWithMessage() throws {
         let source = """
-        XCTAssertFalse(value, "Message")
-        """
+            XCTAssertFalse(value, "Message")
+            """
         let expected = """
-        #expect(!value, "Message")
-        """
+            #expect(!value, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertTrueWithFileAndLine() throws {
         let source = """
-        XCTAssertTrue(value, file: #file, line: #line)
-        """
+            XCTAssertTrue(value, file: #file, line: #line)
+            """
         let expected = """
-        #expect(value)
-        """
+            #expect(value)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertTrueWithMessageFileAndLine() throws {
         let source = """
-        XCTAssertTrue(value, "Message", file: #file, line: #line)
-        """
+            XCTAssertTrue(value, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(value, "Message")
-        """
+            #expect(value, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertFalseWithFileAndLine() throws {
         let source = """
-        XCTAssertFalse(value, file: #file, line: #line)
-        """
+            XCTAssertFalse(value, file: #file, line: #line)
+            """
         let expected = """
-        #expect(!value)
-        """
+            #expect(!value)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertFalseWithMessageFileAndLine() throws {
         let source = """
-        XCTAssertFalse(value, "Message", file: #file, line: #line)
-        """
+            XCTAssertFalse(value, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(!value, "Message")
-        """
+            #expect(!value, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }

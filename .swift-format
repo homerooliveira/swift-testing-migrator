@@ -1,0 +1,13 @@
+{
+	"version": 1,
+	"lineLength": 150,
+	"indentation": {
+		"spaces": 4
+	},
+	"rules": {
+        "AlwaysUseLiteralForEmptyCollectionInit" : true,
+        "OmitExplicitReturns" : true,
+        "OrderedImports":true
+	},
+	"tabWidth": 4
+}

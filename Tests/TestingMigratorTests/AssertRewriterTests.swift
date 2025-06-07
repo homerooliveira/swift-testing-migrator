@@ -1,48 +1,49 @@
-import Testing
-@testable import TestingMigrator
 import SwiftSyntax
+import Testing
+
+@testable import TestingMigrator
 
 struct AssertRewriterTests {
     @Test func testAssert() throws {
         let source = """
-        XCTAssert(value == true)
-        """
+            XCTAssert(value == true)
+            """
         let expected = """
-        #expect(value == true)
-        """
+            #expect(value == true)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertWithMessage() throws {
         let source = """
-        XCTAssert(value == true, "Message")
-        """
+            XCTAssert(value == true, "Message")
+            """
         let expected = """
-        #expect(value == true, "Message")
-        """
+            #expect(value == true, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertWithFileAndLine() throws {
         let source = """
-        XCTAssert(value == true, file: #file, line: #line)
-        """
+            XCTAssert(value == true, file: #file, line: #line)
+            """
         let expected = """
-        #expect(value == true)
-        """
+            #expect(value == true)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertWithMessageFileAndLine() throws {
         let source = """
-        XCTAssert(value == true, "Message", file: #file, line: #line)
-        """
+            XCTAssert(value == true, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(value == true, "Message")
-        """
+            #expect(value == true, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }

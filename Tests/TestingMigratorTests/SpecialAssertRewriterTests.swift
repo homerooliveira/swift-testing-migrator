@@ -1,92 +1,93 @@
-import Testing
-@testable import TestingMigrator
 import SwiftSyntax
+import Testing
+
+@testable import TestingMigrator
 
 struct SpecialAssertRewriterTests {
     @Test func testFail() throws {
         let source = """
-        XCTFail()
-        """
+            XCTFail()
+            """
         let expected = """
-        Issue.record()
-        """
+            Issue.record()
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testFailWithMessage() throws {
         let source = """
-        XCTFail("Message")
-        """
+            XCTFail("Message")
+            """
         let expected = """
-        Issue.record("Message")
-        """
+            Issue.record("Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testFailWithFileAndLine() throws {
         let source = """
-        XCTFail(file: #file, line: #line)
-        """
+            XCTFail(file: #file, line: #line)
+            """
         let expected = """
-        Issue.record()
-        """
+            Issue.record()
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testFailWithMessageFileAndLine() throws {
         let source = """
-        XCTFail("Message", file: #file, line: #line)
-        """
+            XCTFail("Message", file: #file, line: #line)
+            """
         let expected = """
-        Issue.record("Message")
-        """
+            Issue.record("Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testUnwrap() throws {
         let source = """
-        let value = try XCTUnwrap(optional)
-        """
+            let value = try XCTUnwrap(optional)
+            """
         let expected = """
-        let value = try #require(optional)
-        """
+            let value = try #require(optional)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testUnwrapWithMessage() throws {
         let source = """
-        let value = try XCTUnwrap(optional, "Message")
-        """
+            let value = try XCTUnwrap(optional, "Message")
+            """
         let expected = """
-        let value = try #require(optional, "Message")
-        """
+            let value = try #require(optional, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testUnwrapWithFileAndLine() throws {
         let source = """
-        let value = try XCTUnwrap(optional, file: #file, line: #line)
-        """
+            let value = try XCTUnwrap(optional, file: #file, line: #line)
+            """
         let expected = """
-        let value = try #require(optional)
-        """
+            let value = try #require(optional)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testUnwrapWithMessageFileAndLine() throws {
         let source = """
-        let value = try XCTUnwrap(optional, "Message", file: #file, line: #line)
-        """
+            let value = try XCTUnwrap(optional, "Message", file: #file, line: #line)
+            """
         let expected = """
-        let value = try #require(optional, "Message")
-        """
+            let value = try #require(optional, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }

@@ -17,7 +17,6 @@ struct RewriterContext {
     let inheritanceFromXCTestCase: Bool
 }
 
-
 // MARK: - Main Rewriter Class
 
 final class ClassRewriter: SyntaxRewriter {
@@ -28,11 +27,12 @@ final class ClassRewriter: SyntaxRewriter {
     private var hasTearDownMethod = false
 
     init(useClass: Bool) {
-        self.strategy = if useClass {
-            ClassStrategy()
-        } else {
-            StructStrategy()
-        }
+        self.strategy =
+            if useClass {
+                ClassStrategy()
+            } else {
+                StructStrategy()
+            }
     }
 
     override func visit(_ node: ClassDeclSyntax) -> DeclSyntax {

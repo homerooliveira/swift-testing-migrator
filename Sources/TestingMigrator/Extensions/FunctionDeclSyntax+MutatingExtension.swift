@@ -11,7 +11,8 @@ extension FunctionDeclSyntax {
         )
         var updatedModifiers = modifiers
         updatedModifiers.append(mutatingModifier)
-        return self
+        return
+            self
             .with(\.modifiers, updatedModifiers)
             .with(\.funcKeyword.leadingTrivia, .space)
     }

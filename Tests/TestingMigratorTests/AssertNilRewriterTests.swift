@@ -1,59 +1,60 @@
-import Testing
-@testable import TestingMigrator
 import SwiftSyntax
+import Testing
+
+@testable import TestingMigrator
 
 struct AssertNilRewriterTests {
     @Test func testAssertNil() throws {
         let source = """
-        XCTAssertNil(value)
-        """
+            XCTAssertNil(value)
+            """
         let expected = """
-        #expect(value == nil)
-        """
+            #expect(value == nil)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNilWithMessage() throws {
         let source = """
-        XCTAssertNil(value, "Message")
-        """
+            XCTAssertNil(value, "Message")
+            """
         let expected = """
-        #expect(value == nil, "Message")
-        """
+            #expect(value == nil, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNotNil() throws {
         let source = """
-        XCTAssertNotNil(value)
-        """
+            XCTAssertNotNil(value)
+            """
         let expected = """
-        #expect(value != nil)
-        """
+            #expect(value != nil)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNotNilWithMessage() throws {
         let source = """
-        XCTAssertNotNil(value, "Message")
-        """
+            XCTAssertNotNil(value, "Message")
+            """
         let expected = """
-        #expect(value != nil, "Message")
-        """
+            #expect(value != nil, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertNilWithFileAndLine() throws {
         let source = """
-        XCTAssertNil(value, file: #file, line: #line)
-        """
+            XCTAssertNil(value, file: #file, line: #line)
+            """
         let expected = """
-        #expect(value == nil)
-        """
+            #expect(value == nil)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }

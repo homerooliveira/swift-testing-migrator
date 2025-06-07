@@ -1,6 +1,5 @@
-import Testing
 import Foundation
-
+import Testing
 
 // MARK: - String Diff Assertion
 
@@ -113,10 +112,11 @@ private struct StringDiff {
 
     /// Visualizes whitespace characters for better diff display
     private func visualizeWhitespace(_ string: String) -> String {
-        return string
-            .replacingOccurrences(of: " ", with: "·")      // Middle dot for spaces
-            .replacingOccurrences(of: "\t", with: "→")     // Arrow for tabs
-            .replacingOccurrences(of: "\r", with: "↩")     // Return symbol for carriage returns
+        string
+            .replacingOccurrences(of: " ", with: "·")  // Middle dot for spaces
+            .replacingOccurrences(of: "\t", with: "→")  // Arrow for tabs
+            .replacingOccurrences(of: "\r", with: "↩")  // Return symbol for carriage returns
+        // Return symbol for carriage returns
     }
 
 }

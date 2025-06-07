@@ -8,7 +8,7 @@ final class SuperMethodsRemover: SyntaxRewriter {
     }
 
     override func visit(_ node: CodeBlockSyntax) -> CodeBlockSyntax {
-        let filteredStatements = node.statements.filter { item  in
+        let filteredStatements = node.statements.filter { item in
             !isSuperSetupCallItem(item)
         }
 
@@ -29,7 +29,8 @@ final class SuperMethodsRemover: SyntaxRewriter {
 
             // Handle try expressions: try super.setUpWithError()
             if let tryExpr = exprStmt.expression.as(TryExprSyntax.self),
-               let functionCall = tryExpr.expression.as(FunctionCallExprSyntax.self) {
+                let functionCall = tryExpr.expression.as(FunctionCallExprSyntax.self)
+            {
                 return isSuperSetupCall(functionCall)
             }
         }
@@ -39,8 +40,9 @@ final class SuperMethodsRemover: SyntaxRewriter {
 
     private func isSuperSetupCall(_ functionCall: FunctionCallExprSyntax) -> Bool {
         guard let memberAccess = functionCall.calledExpression.as(MemberAccessExprSyntax.self),
-              memberAccess.base?.is(SuperExprSyntax.self) == true,
-              methods.contains(memberAccess.declName.baseName.text) else {
+            memberAccess.base?.is(SuperExprSyntax.self) == true,
+            methods.contains(memberAccess.declName.baseName.text)
+        else {
             return false
         }
         return true

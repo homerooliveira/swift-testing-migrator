@@ -1,136 +1,137 @@
-import Testing
-@testable import TestingMigrator
 import SwiftSyntax
+import Testing
+
+@testable import TestingMigrator
 
 struct AssertComparisonRewriterTests {
     @Test func testAssertGreaterThan() throws {
         let source = """
-        XCTAssertGreaterThan(a, b)
-        """
+            XCTAssertGreaterThan(a, b)
+            """
         let expected = """
-        #expect(a > b)
-        """
+            #expect(a > b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertGreaterThanOrEqual() throws {
         let source = """
-        XCTAssertGreaterThanOrEqual(a, b)
-        """
+            XCTAssertGreaterThanOrEqual(a, b)
+            """
         let expected = """
-        #expect(a >= b)
-        """
+            #expect(a >= b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertLessThan() throws {
         let source = """
-        XCTAssertLessThan(a, b)
-        """
+            XCTAssertLessThan(a, b)
+            """
         let expected = """
-        #expect(a < b)
-        """
+            #expect(a < b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertLessThanOrEqual() throws {
         let source = """
-        XCTAssertLessThanOrEqual(a, b)
-        """
+            XCTAssertLessThanOrEqual(a, b)
+            """
         let expected = """
-        #expect(a <= b)
-        """
+            #expect(a <= b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertGreaterThanWithFileAndLine() throws {
         let source = """
-        XCTAssertGreaterThan(a, b, file: #file, line: #line)
-        """
+            XCTAssertGreaterThan(a, b, file: #file, line: #line)
+            """
         let expected = """
-        #expect(a > b)
-        """
+            #expect(a > b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertGreaterThanWithMessageFileAndLine() throws {
         let source = """
-        XCTAssertGreaterThan(a, b, "Message", file: #file, line: #line)
-        """
+            XCTAssertGreaterThan(a, b, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(a > b, "Message")
-        """
+            #expect(a > b, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertLessThanWithFileAndLine() throws {
         let source = """
-        XCTAssertLessThan(a, b, file: #file, line: #line)
-        """
+            XCTAssertLessThan(a, b, file: #file, line: #line)
+            """
         let expected = """
-        #expect(a < b)
-        """
+            #expect(a < b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertLessThanWithMessageFileAndLine() throws {
         let source = """
-        XCTAssertLessThan(a, b, "Message", file: #file, line: #line)
-        """
+            XCTAssertLessThan(a, b, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(a < b, "Message")
-        """
+            #expect(a < b, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertGreaterThanOrEqualWithFileAndLine() throws {
         let source = """
-        XCTAssertGreaterThanOrEqual(a, b, file: #file, line: #line)
-        """
+            XCTAssertGreaterThanOrEqual(a, b, file: #file, line: #line)
+            """
         let expected = """
-        #expect(a >= b)
-        """
+            #expect(a >= b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertGreaterThanOrEqualWithMessageFileAndLine() throws {
         let source = """
-        XCTAssertGreaterThanOrEqual(a, b, "Message", file: #file, line: #line)
-        """
+            XCTAssertGreaterThanOrEqual(a, b, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(a >= b, "Message")
-        """
+            #expect(a >= b, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertLessThanOrEqualWithFileAndLine() throws {
         let source = """
-        XCTAssertLessThanOrEqual(a, b, file: #file, line: #line)
-        """
+            XCTAssertLessThanOrEqual(a, b, file: #file, line: #line)
+            """
         let expected = """
-        #expect(a <= b)
-        """
+            #expect(a <= b)
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
     @Test func testAssertLessThanOrEqualWithMessageFileAndLine() throws {
         let source = """
-        XCTAssertLessThanOrEqual(a, b, "Message", file: #file, line: #line)
-        """
+            XCTAssertLessThanOrEqual(a, b, "Message", file: #file, line: #line)
+            """
         let expected = """
-        #expect(a <= b, "Message")
-        """
+            #expect(a <= b, "Message")
+            """
         let modifiedContent = Rewriter().rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
