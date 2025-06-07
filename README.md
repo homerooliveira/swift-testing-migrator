@@ -22,6 +22,26 @@ This tool handles the tedious migration work automatically, letting you focus on
 - **Format preservation**: Maintains your existing comments, whitespace, and code structure
 - **Batch processing**: Handle individual files or entire directory trees
 
+## ⚡ Performance
+
+The migrator is optimized for both single-file and large-scale migrations:
+
+### Benchmark Results
+*Tested on 1,000 Swift test files with 10 methods each*
+
+| Mode | Processing | Time | Performance |
+|------|------------|------|-------------|
+| **Read-only** | Sequential | 2.02s | ⭐ Recommended |
+| Read-only | Parallel | 2.63s | 30% slower |
+| **In-place** | Sequential | 548ms | Fast |
+| **In-place** | Parallel | 209ms | ⭐ **2.6x faster** |
+
+### Performance Recommendations
+
+- **For in-place migrations**: Use `--parallel` for optimal performance (2.6x speedup)
+- **For preview/read-only**: Use sequential processing (parallel adds overhead)
+- **Large codebases**: The `--in-place --parallel` combination provides the best throughput
+
 ## 🔧 Requirements
 
 - **Swift**: 6.1 or later
@@ -51,6 +71,11 @@ swift run swift-testing-migrator MyTestFile.swift
 swift run swift-testing-migrator Tests/ --in-place --recursive
 ```
 
+**High-performance batch migration:**
+```bash
+swift run swift-testing-migrator Tests/ --in-place --recursive --parallel
+```
+
 **Preview changes before applying:**
 ```bash
 swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
@@ -62,6 +87,7 @@ swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 |--------|-------------|
 | `--in-place` | Modify files directly instead of printing to stdout |
 | `--recursive` | Process all Swift files in subdirectories |
+| `--parallel` | Enable parallel processing (recommended with `--in-place`) |
 | `--help` | Show usage information |
 
 ## 📋 Migration Reference
@@ -143,6 +169,17 @@ swift build --configuration release
 swift test
 ```
 
+### Performance Testing
+
+To benchmark the migrator's performance on your system:
+
+```bash
+# Run performance test with 1,000 files containing 10 methods each
+./measure_performance.sh 1000 --methods 10
+```
+
+This will generate test fixtures, run benchmarks for all processing modes, and provide detailed timing comparisons to help you choose the optimal configuration for your use case.
+
 ### Contributing
 
 We welcome contributions! Here's how to get started:
@@ -162,10 +199,10 @@ We welcome contributions! Here's how to get started:
 
 ## 🐛 Known Limitations
 
-- Complex custom assertion macros may require manual adjustment
-- Parameterized tests need manual conversion to Swift Testing's parameterization syntax
 - Some XCTest-specific features (like performance testing) don't have direct Swift Testing equivalents
-- It is recomended to run formatting tools like `swift-format` after migration to ensure code style consistency
+- The tool does not currently support migrating tests that use `XCTestExpectation`, asynchronous tests, `XCTSkip` or `XCTSkipIf`; these need manual migration
+- Migration of `XCTestCase` subclasses with complex inheritance hierarchies may require manual adjustments
+- It is recommended to run formatting tools like `swift-format` after migration to ensure code style consistency
 
 ## 📄 License
 
