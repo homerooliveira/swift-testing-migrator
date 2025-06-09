@@ -111,7 +111,6 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
                     updateMemberAccessIfNeeded(
                         statement,
                         leadingTrivia: node.leadingTrivia,
-                        trailingTrivia: node.trailingTrivia,
                         parameter: parameter
                     )
                 })
@@ -138,7 +137,6 @@ final class XCTAssertThrowRewriter: SyntaxRewriter {
     func updateMemberAccessIfNeeded(
         _ statement: CodeBlockItemListSyntax.Element,
         leadingTrivia: Trivia,
-        trailingTrivia: Trivia,
         parameter: String
     ) -> CodeBlockItemListSyntax.Element {
         let space = leadingTrivia.first { $0.isSpaceOrTab } ?? .spaces(0)

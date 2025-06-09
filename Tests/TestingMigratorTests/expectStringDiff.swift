@@ -120,23 +120,3 @@ private struct StringDiff {
     }
 
 }
-
-// MARK: - CollectionDifference Extensions for Convenience
-
-extension CollectionDifference {
-    /// Returns all insertion changes
-    var insertions: [CollectionDifference<ChangeElement>.Change] {
-        compactMap { change in
-            if case .insert = change { return change }
-            return nil
-        }
-    }
-
-    /// Returns all removal changes
-    var removals: [CollectionDifference<ChangeElement>.Change] {
-        compactMap { change in
-            if case .remove = change { return change }
-            return nil
-        }
-    }
-}

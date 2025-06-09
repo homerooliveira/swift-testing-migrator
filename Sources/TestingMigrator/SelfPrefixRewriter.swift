@@ -148,29 +148,6 @@ final class SelfPrefixRewriter: SyntaxRewriter {
         return ExprSyntax(updatedNode)
     }
 
-    private func handleMemberAccessMethodCall(_ node: FunctionCallExprSyntax, memberAccess: MemberAccessExprSyntax) -> FunctionCallExprSyntax {
-        // If it's a direct method call without base (implicitly on self)
-        if memberAccess.base == nil && methods.contains(memberAccess.declName.baseName.text) {
-            let selfMemberAccess = createSelfMemberAccess(
-                for: memberAccess.declName.baseName.text,
-                originalNode: memberAccess
-            )
-            return node.with(\.calledExpression, ExprSyntax(selfMemberAccess))
-        }
-        return node
-    }
-
-    private func handleDirectMethodCall(_ node: FunctionCallExprSyntax, declRef: DeclReferenceExprSyntax) -> FunctionCallExprSyntax {
-        if methods.contains(declRef.baseName.text) {
-            let selfMemberAccess = createSelfMemberAccess(
-                for: declRef.baseName.text,
-                originalNode: declRef
-            )
-            return node.with(\.calledExpression, ExprSyntax(selfMemberAccess))
-        }
-        return node
-    }
-
     // MARK: - Context Management
 
     private func withClosureContext(_ action: () -> some ExprSyntaxProtocol) -> ExprSyntax {

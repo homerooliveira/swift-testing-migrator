@@ -134,7 +134,7 @@ swift run swift-testing-migrator Tests/ --in-place --recursive --use-class
 |--------|---------------|---------------|
 | `import XCTest` | `import Testing` | |
 | `class MyTests: XCTestCase` | `struct MyTests` or `class MyTests` | Classes are converted to structs by default; use `--use-class` to keep as classes. |
-| `func testSomething() { }` | `@Test func something() { }` | Methods starting with `test` are annotated with `@Test`. |
+| `func testSomething() { }` | `@Test func testSomething() { }` | Methods starting with `test` are annotated with `@Test`. |
 | `override func setUp() async throws` | `init() async throws` | `setUp`/`setUpWithError` are converted to initializers. |
 | `override func tearDown()` | `deinit` | Async or throwing `tearDown` methods are not supported and require manual migration. |
 

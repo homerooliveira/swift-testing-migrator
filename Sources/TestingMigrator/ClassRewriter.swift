@@ -5,7 +5,7 @@ import SwiftSyntax
 protocol RewritingStrategy {
     func transformClass(_ node: ClassDeclSyntax, context: RewriterContext) -> DeclSyntax
     func transformFunction(_ node: FunctionDeclSyntax, context: RewriterContext) -> FunctionDeclSyntax
-    func transformVariable(_ node: VariableDeclSyntax, context: RewriterContext) -> VariableDeclSyntax
+    func transformVariable(_ node: VariableDeclSyntax) -> DeclSyntax
 }
 
 // MARK: - Context
@@ -14,7 +14,6 @@ struct RewriterContext {
     let storedProperties: Set<String>
     let methods: Set<String>
     let hasTearDownMethod: Bool
-    let inheritanceFromXCTestCase: Bool
 }
 
 // MARK: - Main Rewriter Class
@@ -51,8 +50,7 @@ final class ClassRewriter: SyntaxRewriter {
         let context = RewriterContext(
             storedProperties: storedProperties,
             methods: methods,
-            hasTearDownMethod: hasTearDownMethod,
-            inheritanceFromXCTestCase: inheritanceFromXCTestCase
+            hasTearDownMethod: hasTearDownMethod
         )
 
         return strategy.transformClass(nodeWithUpdatedMembers, context: context)
@@ -75,8 +73,7 @@ final class ClassRewriter: SyntaxRewriter {
         let context = RewriterContext(
             storedProperties: storedProperties,
             methods: methods,
-            hasTearDownMethod: hasTearDownMethod,
-            inheritanceFromXCTestCase: true
+            hasTearDownMethod: hasTearDownMethod
         )
 
         let nodeWithTestAttribute = node.addingTestAttribute()
@@ -84,14 +81,7 @@ final class ClassRewriter: SyntaxRewriter {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> DeclSyntax {
-        let context = RewriterContext(
-            storedProperties: storedProperties,
-            methods: methods,
-            hasTearDownMethod: hasTearDownMethod,
-            inheritanceFromXCTestCase: true
-        )
-
-        return DeclSyntax(strategy.transformVariable(node, context: context))
+        DeclSyntax(strategy.transformVariable(node))
     }
 
     private func updateMemberFunctions(_ node: ClassDeclSyntax) -> ClassDeclSyntax {
@@ -123,8 +113,8 @@ struct ClassStrategy: RewritingStrategy {
         node.addingSelfPrefixes(context: context)
     }
 
-    func transformVariable(_ node: VariableDeclSyntax, context: RewriterContext) -> VariableDeclSyntax {
-        node
+    func transformVariable(_ node: VariableDeclSyntax) -> DeclSyntax {
+        DeclSyntax(node)
     }
 }
 
@@ -140,8 +130,8 @@ struct StructStrategy: RewritingStrategy {
         return withoutOverride.addingMutatingIfNeeded(context: context)
     }
 
-    func transformVariable(_ node: VariableDeclSyntax, context: RewriterContext) -> VariableDeclSyntax {
+    func transformVariable(_ node: VariableDeclSyntax) -> DeclSyntax {
         let filteredModifiers = node.modifiers.filteringOverride()
-        return node.with(\.modifiers, filteredModifiers)
+        return DeclSyntax(node.with(\.modifiers, filteredModifiers))
     }
 }
