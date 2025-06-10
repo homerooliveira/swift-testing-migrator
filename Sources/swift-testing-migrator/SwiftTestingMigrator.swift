@@ -30,9 +30,17 @@ struct SwiftTestingMigrator: AsyncParsableCommand {
         }
 
         if parallel {
-            try await fileProcessor.processAsyncPath(sourceFilePath, recursive: recursive, processContent: processPath)
+            try await fileProcessor.processAsync(
+                path: sourceFilePath,
+                recursive: recursive,
+                processContent: processPath
+            )
         } else {
-            try fileProcessor.processPath(sourceFilePath, recursive: recursive, processContent: processPath)
+            try fileProcessor.process(
+                path: sourceFilePath,
+                recursive: recursive,
+                processContent: processPath
+            )
         }
     }
 }

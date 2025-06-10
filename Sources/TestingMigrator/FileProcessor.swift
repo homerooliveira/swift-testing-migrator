@@ -1,14 +1,16 @@
-import Foundation
+public import Foundation
 
-struct FileProcessor {
+public struct FileProcessor: Sendable {
+
+    public init() {}
 
     /// Process files at the given path with optional recursive directory traversal
     /// - Parameters:
     ///   - path: The file or directory path to process
     ///   - recursive: Whether to recursively process subdirectories (default: false)
     ///   - processContent: Closure to process file content
-    func processPath(
-        _ path: String,
+    public func process(
+        path: String,
         recursive: Bool = false,
         processContent: (String, URL) throws -> Void
     ) throws {
@@ -20,9 +22,9 @@ struct FileProcessor {
         }
     }
 
-    /// Async version of processPath
-    func processAsyncPath(
-        _ path: String,
+    /// Async version of process
+    public func processAsync(
+        path: String,
         recursive: Bool = false,
         processContent: @Sendable @escaping (String, URL) throws -> Void
     ) async throws {
@@ -133,9 +135,7 @@ struct FileProcessor {
         _ fileURL: URL,
         processContent: @Sendable @escaping (String, URL) throws -> Void
     ) async throws {
-        try await Task {
-            try self.processFile(fileURL, processContent: processContent)
-        }.value
+        try self.processFile(fileURL, processContent: processContent)
     }
 }
 
