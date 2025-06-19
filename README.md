@@ -124,9 +124,8 @@ swift-testing-migrator/
 
 ### Dependencies
 
-This project uses some great tools from the Swift ecosystem:
 - **[swift-syntax](https://github.com/apple/swift-syntax)**: For parsing and transforming Swift source code
-- **[swift-argument-parser](https://github.com/apple/swift-argument-parser)**: For building a modern command-line interface
+- **[swift-argument-parser](https://github.com/apple/swift-argument-parser)**: For command-line interface
 
 ### Building from Source
 
