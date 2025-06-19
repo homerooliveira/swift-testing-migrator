@@ -1,35 +1,41 @@
-public import Foundation
+import Foundation
 
 public struct FileProcessor: Sendable {
+    public struct Configuration: Sendable {
+        let sourceFilePath: String
+        let inPlace: Bool
+        let recursive: Bool
+        let useClass: Bool
+        let parallel: Bool
 
-    public init() {}
-
-    /// Process files at the given path with optional recursive directory traversal
-    /// - Parameters:
-    ///   - path: The file or directory path to process
-    ///   - recursive: Whether to recursively process subdirectories (default: false)
-    ///   - processContent: Closure to process file content
-    public func process(
-        path: String,
-        recursive: Bool = false,
-        processContent: (String, URL) throws -> Void
-    ) throws {
-        let url = try validatePath(path)
-        let files = try swiftFiles(in: url, recursive: recursive)
-
-        for fileURL in files {
-            try processFile(fileURL, processContent: processContent)
+        public init(
+            sourceFilePath: String,
+            inPlace: Bool,
+            recursive: Bool,
+            useClass: Bool,
+            parallel: Bool
+        ) {
+            self.sourceFilePath = sourceFilePath
+            self.inPlace = inPlace
+            self.recursive = recursive
+            self.useClass = useClass
+            self.parallel = parallel
         }
     }
 
-    /// Async version of process
-    public func processAsync(
-        path: String,
-        recursive: Bool = false,
-        processContent: @Sendable @escaping (String, URL) throws -> Void
-    ) async throws {
-        let url = try validatePath(path)
-        try await processURLAsync(url, recursive: recursive, processContent: processContent)
+    public init() {}
+
+    public func process(config: Configuration) async throws {
+        let url = try validatePath(config.sourceFilePath)
+        let files = try swiftFiles(in: url, recursive: config.recursive)
+
+        if config.parallel {
+            try await processURLAsync(files: files, config: config)
+        } else {
+            for fileURL in files {
+                try processFile(fileURL, config)
+            }
+        }
     }
 
     // MARK: - Private Helper Methods
@@ -82,21 +88,19 @@ public struct FileProcessor: Sendable {
 
     /// Process URL (file or directory) asynchronously with concurrency limiting
     private func processURLAsync(
-        _ url: URL,
-        recursive: Bool,
-        processContent: @Sendable @escaping (String, URL) throws -> Void
+        files: [URL],
+        config: Configuration
     ) async throws {
-        let files = try swiftFiles(in: url, recursive: recursive)
         let maxConcurrentTasks = min(ProcessInfo.processInfo.activeProcessorCount, files.count)
         var submittedFiles = 0
 
-        try await withThrowingTaskGroup(of: Void.self) { group in
+        try await withThrowingTaskGroup { group in
             // Start initial batch of tasks
             for _ in 0..<maxConcurrentTasks {
                 let fileURL = files[submittedFiles]
 
                 group.addTask {
-                    try await self.processFileAsync(fileURL, processContent: processContent)
+                    try self.processFile(fileURL, config)
                 }
 
                 submittedFiles += 1
@@ -109,7 +113,7 @@ public struct FileProcessor: Sendable {
                     let fileURL = files[submittedFiles]
 
                     group.addTask {
-                        try await self.processFileAsync(fileURL, processContent: processContent)
+                        try self.processFile(fileURL, config)
                     }
 
                     submittedFiles += 1
@@ -119,27 +123,23 @@ public struct FileProcessor: Sendable {
     }
 
     /// Process a single file synchronously
-    private func processFile(_ fileURL: URL, processContent: (String, URL) throws -> Void) throws {
+    private func processFile(_ fileURL: URL, _ config: Configuration) throws {
         do {
             let data = try Data(contentsOf: fileURL)
             let content = String(decoding: data, as: UTF8.self)
-            try processContent(content, fileURL)
+            let rewriter = Rewriter(useClass: config.useClass)
+            let modifiedContent = rewriter.rewrite(source: content)
+
+            if config.inPlace {
+                try modifiedContent.write(to: fileURL, atomically: true, encoding: .utf8)
+            } else {
+                print(modifiedContent)
+            }
         } catch {
             throw FileProcessorError.cannotReadFile(fileURL.path, error)
         }
-
-    }
-
-    /// Process a single file asynchronously
-    private func processFileAsync(
-        _ fileURL: URL,
-        processContent: @Sendable @escaping (String, URL) throws -> Void
-    ) async throws {
-        try self.processFile(fileURL, processContent: processContent)
     }
 }
-
-// MARK: - URL Extensions
 
 private extension URL {
     /// Check if URL represents a directory
@@ -152,27 +152,5 @@ private extension URL {
     func isSwiftFile() throws -> Bool {
         let resourceValues = try resourceValues(forKeys: [.isRegularFileKey])
         return resourceValues.isRegularFile == true && pathExtension == "swift"
-    }
-}
-
-// MARK: - Error Handling
-
-enum FileProcessorError: Error, LocalizedError {
-    case pathNotFound(String)
-    case cannotEnumerateDirectory(String)
-    case cannotReadFile(String, any Error)
-    case emptyDirectory(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .pathNotFound(let path):
-            "Path not found: \(path)"
-        case .cannotEnumerateDirectory(let path):
-            "Cannot enumerate directory: \(path)"
-        case .cannotReadFile(let path, let error):
-            "Cannot read file at \(path): \(error.localizedDescription)"
-        case .emptyDirectory(let path):
-            "No Swift files found in directory: \(path)"
-        }
     }
 }

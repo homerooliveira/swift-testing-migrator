@@ -11,7 +11,7 @@ struct AssertThrowRewriterTests {
         let expected = """
             #expect(throws: (any Error).self) { try something() }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -22,7 +22,7 @@ struct AssertThrowRewriterTests {
         let expected = """
             #expect(throws: (any Error).self, "Message") { try something() }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -33,7 +33,7 @@ struct AssertThrowRewriterTests {
         let expected = """
             #expect(throws: Never.self) { try something() }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -44,7 +44,7 @@ struct AssertThrowRewriterTests {
         let expected = """
             #expect(throws: Never.self, "Message") { try something() }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -55,7 +55,7 @@ struct AssertThrowRewriterTests {
         let expected = """
             #expect(throws: (any Error).self) { try something() }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -66,7 +66,7 @@ struct AssertThrowRewriterTests {
         let expected = """
             #expect(throws: (any Error).self, "Message") { try something() }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -82,7 +82,7 @@ struct AssertThrowRewriterTests {
             #expect(error?.localizedDescription == "Message")
             #expect(error is CocoaError)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -97,7 +97,7 @@ struct AssertThrowRewriterTests {
             let error = #expect(throws: (any Error).self, "Message") { try something() }
             #expect(error is MyError)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 }

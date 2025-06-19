@@ -11,7 +11,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             Issue.record()
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -22,7 +22,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             Issue.record("Message")
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -33,7 +33,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             Issue.record()
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -44,7 +44,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             Issue.record("Message")
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -55,7 +55,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             let value = try #require(optional)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -66,7 +66,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             let value = try #require(optional, "Message")
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -77,7 +77,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             let value = try #require(optional)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -88,7 +88,7 @@ struct SpecialAssertRewriterTests {
         let expected = """
             let value = try #require(optional, "Message")
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 }

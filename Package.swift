@@ -49,6 +49,7 @@ extension [SwiftSetting] {
             .enableUpcomingFeature("ExistentialAny"),
             .enableUpcomingFeature("InternalImportsByDefault"),
             .enableUpcomingFeature("MemberImportVisibility"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
         ]
     }
 }

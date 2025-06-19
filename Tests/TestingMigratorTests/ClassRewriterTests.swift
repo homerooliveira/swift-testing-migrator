@@ -17,7 +17,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -34,7 +34,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -47,7 +47,7 @@ struct ClassRewriterTests {
             final class MyTests {
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -76,7 +76,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -93,7 +93,7 @@ struct ClassRewriterTests {
                  }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -106,7 +106,7 @@ struct ClassRewriterTests {
             class MyClass: SomeClass {
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -123,7 +123,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -140,7 +140,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -169,7 +169,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -194,7 +194,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -215,7 +215,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -230,7 +230,7 @@ struct ClassRewriterTests {
                 @Test func testMyTest() {}
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -247,7 +247,7 @@ struct ClassRewriterTests {
                 @Test func testExample() { _ = value }
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -264,7 +264,7 @@ struct ClassRewriterTests {
                 @Test mutating func testIncrement() { count += 1 }
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -281,7 +281,7 @@ struct ClassRewriterTests {
                 @Test func testNoMutation() { print("hi") }
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -298,7 +298,7 @@ struct ClassRewriterTests {
                 @Test func testExample() {}
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -313,7 +313,7 @@ struct ClassRewriterTests {
                 @Test func testExample() {}
             }
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -364,7 +364,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: false)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -406,7 +406,7 @@ struct ClassRewriterTests {
                 }
             }
             """
-        let modifiedContent = Rewriter(.init(useClass: true)).rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: true).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 }

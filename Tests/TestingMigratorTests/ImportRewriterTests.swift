@@ -11,7 +11,7 @@ struct ImportRewriterTests {
         let expected = """
             import Testing
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -24,7 +24,7 @@ struct ImportRewriterTests {
             // Comment
             internal import Testing
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 }

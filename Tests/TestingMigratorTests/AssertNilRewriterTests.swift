@@ -11,7 +11,7 @@ struct AssertNilRewriterTests {
         let expected = """
             #expect(value == nil)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -22,7 +22,7 @@ struct AssertNilRewriterTests {
         let expected = """
             #expect(value == nil, "Message")
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -33,7 +33,7 @@ struct AssertNilRewriterTests {
         let expected = """
             #expect(value != nil)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -44,7 +44,7 @@ struct AssertNilRewriterTests {
         let expected = """
             #expect(value != nil, "Message")
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 
@@ -55,7 +55,7 @@ struct AssertNilRewriterTests {
         let expected = """
             #expect(value == nil)
             """
-        let modifiedContent = Rewriter().rewrite(source: source)
+        let modifiedContent = Rewriter(useClass: false).rewrite(source: source)
         expectStringDiff(modifiedContent, expected)
     }
 }
