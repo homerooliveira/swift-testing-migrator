@@ -1,53 +1,23 @@
-# swift-testing-migrator
+# Swift Testing Migrator
 
-A powerful Swift command-line tool and library that automates the migration of XCTest-based test suites to Apple's modern Swift Testing framework. Built with SwiftSyntax for precise source code transformation while preserving your code's structure and formatting.
+Swift Testing Migrator is a command-line tool to automate the migration of XCTest-based test suites to the Swift Testing framework. Built with SwiftSyntax and Swift Argument Parser.
 
-## Why Swift Testing Migration?
-
-Swift Testing, introduced in Swift 6, offers significant advantages over XCTest:
-- **Modern syntax** with `@Test` attributes and `#expect` macros
-- **Better error reporting** with detailed failure information
-- **Improved performance** and parallelization capabilities
-- **Enhanced developer experience** with cleaner, more expressive test code
-
-This tool handles the tedious migration work automatically, letting you focus on improving your tests rather than manually rewriting syntax.
-
-## ✨ Features
+## Features
 
 - **Complete class transformation**: Converts `XCTestCase` classes to Swift Testing structs or classes
-- **Intelligent method rewriting**: Transforms test methods to use `@Test` attributes
-- **Setup method conversion**: Migrates `setUp`/`setUpWithError` to proper initializers
-- **Comprehensive assertion mapping**: Converts all common XCTest assertions to Swift Testing equivalents
-- **Smart cleanup**: Removes unnecessary inheritance and modifiers
-- **Format preservation**: Maintains your existing comments, whitespace, and code structure
-- **Batch processing**: Handle individual files or entire directory trees
+- **Smart method rewriting**: Adds `@Test` attributes to test methods
+- **Setup method conversion**: Turns `setUp`/`setUpWithError` into initializers
+- **Assertion mapping**: Maps XCTest assertions to Swift Testing equivalents
+- **Code cleanup**: Removes unnecessary inheritance and modifiers
+- **Format preservation**: Keeps your comments, whitespace, and code structure intact
+- **Batch processing**: Handles individual files or entire directories
 
-## ⚡ Performance
-
-The migrator is optimized for both single-file and large-scale migrations:
-
-### Benchmark Results
-*Tested on 1,000 Swift test files with 10 methods each*
-
-| Mode | Processing | Time | Performance |
-|------|------------|------|-------------|
-| **Read-only** | Sequential | 2.02s | ⭐ Recommended |
-| Read-only | Parallel | 2.63s | 30% slower |
-| **In-place** | Sequential | 548ms | Fast |
-| **In-place** | Parallel | 209ms | ⭐ **2.6x faster** |
-
-### Performance Recommendations
-
-- **For in-place migrations**: Use `--parallel` for optimal performance (2.6x speedup)
-- **For preview/read-only**: Use sequential processing (parallel adds overhead)
-- **Large codebases**: The `--in-place --parallel` combination provides the best throughput
-
-## 🔧 Requirements
+## Requirements
 
 - **Swift**: 6.1 or later
-- **Platform**: macOS 15 or later, Linux and Windows
+- **Platform**: macOS 15 or later, Linux, and Windows
 
-## 🚀 Installation & Usage
+## Installation & Usage
 
 ### Quick Start
 
@@ -63,27 +33,27 @@ swift build --configuration release
 
 **Single file migration:**
 ```bash
-swift run swift-testing-migrator MyTestFile.swift
+swift-testing-migrator MyTestFile.swift
 ```
 
 **Directory migration (recommended):**
 ```bash
-swift run swift-testing-migrator Tests/ --in-place --recursive
+swift-testing-migrator Tests/ --in-place --recursive
 ```
 
 **High-performance batch migration:**
 ```bash
-swift run swift-testing-migrator Tests/ --in-place --recursive --parallel
+swift-testing-migrator Tests/ --in-place --recursive --parallel
 ```
 
 **Preview changes before applying:**
 ```bash
-swift run swift-testing-migrator Tests/ --recursive  # Outputs to stdout
+swift-testing-migrator Tests/ --recursive  # Outputs to stdout
 ```
 
 **Migrate to class-based test suites:**
 ```bash
-swift run swift-testing-migrator Tests/ --in-place --recursive --use-class
+swift-testing-migrator Tests/ --in-place --recursive --use-class
 ```
 
 ### Command-Line Options
@@ -96,7 +66,7 @@ swift run swift-testing-migrator Tests/ --in-place --recursive --use-class
 | `--use-class` | Convert XCTestCase to class-based test suites instead of structs |
 | `--help` | Show usage information |
 
-## 📋 Migration Reference
+## Migration Reference
 
 ### Assertion Transformations
 
@@ -138,7 +108,7 @@ swift run swift-testing-migrator Tests/ --in-place --recursive --use-class
 | `override func setUp() async throws` | `init() async throws` | `setUp`/`setUpWithError` are converted to initializers. |
 | `override func tearDown()` | `deinit` | Async or throwing `tearDown` methods are not supported and require manual migration. |
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```
 swift-testing-migrator/
@@ -150,13 +120,13 @@ swift-testing-migrator/
 └── Package.swift                # Swift Package Manager configuration
 ```
 
-## 🔨 Development
+## Development
 
 ### Dependencies
 
-This project leverages powerful Swift ecosystem tools:
-- **[swift-syntax](https://github.com/apple/swift-syntax)**: Robust Swift source code parsing and transformation
-- **[swift-argument-parser](https://github.com/apple/swift-argument-parser)**: Modern command-line interface construction
+This project uses some great tools from the Swift ecosystem:
+- **[swift-syntax](https://github.com/apple/swift-syntax)**: For parsing and transforming Swift source code
+- **[swift-argument-parser](https://github.com/apple/swift-argument-parser)**: For building a modern command-line interface
 
 ### Building from Source
 
@@ -184,11 +154,23 @@ To benchmark the migrator's performance on your system:
 ./measure_performance.sh 1000 --methods 10
 ```
 
-This will generate test fixtures, run benchmarks for all processing modes, and provide detailed timing comparisons to help you choose the optimal configuration for your use case.
+This generates test fixtures, runs benchmarks for all processing modes, and provides detailed timing comparisons to help you pick the best configuration for your needs.
+
+#### Benchmark Results
+*Tested on 1,000 Swift test files with 10 methods each*
+
+| Mode | Processing | Time |
+|------|------------|------|
+| **Read-only** | Sequential | 2.02s |
+| Read-only | Parallel | 2.63s |
+| **In-place** | Sequential | 548ms |
+| **In-place** | Parallel | 209ms |
+
+> **Note:** Tested on a Mac mini M4 Pro with 24GB RAM. Results may vary based on system configuration.
 
 ### Contributing
 
-We welcome contributions! Here's how to get started:
+We love contributions! Here’s how you can help:
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/amazing-improvement`
@@ -199,21 +181,21 @@ We welcome contributions! Here's how to get started:
 #### Contribution Guidelines
 
 - Add tests for new features or bug fixes
-- Maintain code formatting consistency
+- Keep code formatting consistent
 - Update documentation for user-facing changes
 - Include example transformations in your PR description
 
-## 🐛 Known Limitations
+## Known Limitations
 
-- Some XCTest-specific features (like performance testing) don't have direct Swift Testing equivalents
-- The tool does not currently support migrating tests that use `XCTestExpectation`, asynchronous tests, `XCTSkip` or `XCTSkipIf`; these need manual migration
+- Some XCTest-specific features (like performance testing) don’t have direct Swift Testing equivalents
+- The tool doesn’t currently support migrating tests that use `XCTestExpectation`, asynchronous tests, `XCTSkip`, or `XCTSkipIf`; these need manual migration
 - Migration of `XCTestCase` subclasses with complex inheritance hierarchies may require manual adjustments
-- It is recommended to run formatting tools like `swift-format` after migration to ensure code style consistency
+- It’s a good idea to run formatting tools like `swift-format` after migration to ensure code style consistency
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**Ready to modernize your test suite?** Get started with swift-testing-migrator today and experience the power of Swift Testing! 🚀
+**Ready to modernize your test suite?** Get started with Swift Testing Migrator today and experience the power of Swift Testing! 🚀
